@@ -1,499 +1,1012 @@
-AI エンジニアリング講座
-第 6 回
-チーム開発 / プロジェクトマネジメント基礎
-小原 大樹
-許諾なく撮影や第三者への開示を禁止します
-Agenda
-はじめに
-チーム開発の基礎
-型作りの重要性
-Git/GitHubを使ったチーム開発
-プロジェクトマネジメントの基礎
-不確実性との戦い
-GitHubを使ったプロジェクトマネジメント
-まとめとQ&A
-はじめに
-daikikohara
-講義の概要
-最終回である第 6 回では本番導入を見据えたプロジェクトの進め方を学ぶ
-業務で取り組むプロジェクトは基本的には 1 人では完結しない
-そのため、複数人でプロジェクトを進めるにあたってのチーム開発の基礎も学ぶ
-また、チームでプロジェクトを進める上で不可欠な Git や GitHub などのツールの使い方も学ぶ
-講義の目的
-プロジェクト管理の手法やプラクティスを学ぶ
-チーム開発の基本的な考え方を理解する
-コーディング規約などの型作りの重要性を知る
-GitHub を活用したチーム開発の流れを理解する
-機械学習プロジェクト特有の課題と対策を学ぶ
-プロジェクト管理
-チーム協働
-コード品質
-GitHub活用
-ML特有課題
-チーム開発の基礎
-チームとは
-個人の集団とチームは異なる
-チームとは同じ目的を持ちその達成に向かって協業する集団
-チームで成果を最大化することで1+1を2以上にしていくことが重要
-チームになれていないとき
-自分が2人いた方が早いのにと思ってしまう
-メンバー全員が個人事業主でも同じ進め方が成立してしまう
-とは言え最初からハイパフォーマンスなチームは作れないので、タックマンモデルなどを参考にチームビル
-ディングを行うことが重要
-参考:
-参考: https://asana.com/ja/resources/group-vs-team
-https://business.nikkei.com/atcl/gen/19/00535/092400032/
-個人開発とチーム開発のギャップ
-個人での開発
-自分だけのコーディングスタイル
-自分だけが理解できればOK
-自由な進め方
-ツールや環境は自分の好み
-意思決定が速い
-チームでの開発
-共通のコーディング規約
-他のメンバーが理解できるコード
-計画的な進め方
-共通のツールと環境
-合意形成が必要
-分業による効率化
-相互レビューによる品質向上
-多様な視点からの問題解決
-チームでプロジェクトを進めるにあたっては役割分担と協業の仕方が重要
-これらの原理原則やプラクティスを学んで型作りをすることが重要
-原理原則やベストプラクティスの重要性
-会社として
-共通認識の持ちやすさ
-チーム間でのメンバーのポータビリティ
-個人の市場価値として
-A社の独自のやり方しか経験したことがない人 vs 一般的な原理原則やベストプラクティスに精通した
-人
-原理原則やベストプラクティスの導入は様々な観点で非常に重要
-原理主義になりすぎないことも重要
-状況を考慮して適切な選択をする (とは言え守破離ができると良い)
-チームにおける役割
-様々な役割のメンバーと協業する必要がある
-PM (Project Manager, Product Manager (PjM/PdMのように書き分けることもある))
-PMO (Project Management Office)
-データサイエンティスト
-エンジニア(MLOps, DevOps, Data, Web, Mobile, SRE, etc)
-アーキテクト
-デザイナー
-セールス
-マーケター、PMM(Product Marketing Manager)
-BizDev
-etc (会社やプロジェクトにより必要な役割は異なる)
-実務では複数の役割を兼任することも多いが、それぞれの責任範囲を理解することが重要
-体制図やRACI Matrixなどで役割を明確化する
-R(Responsible): 実行責任者
-A(Accountable): 説明責任者
-C(Consulted): 協業先
-I(Informed): 報告先
-※簡素化した例のため本来はより多くのロールやタスクがある
-※RASICなどの派生形もある（SはSupport）
-チームの分け方の観点
-コンウェイの法則と逆コンウェイ戦略
-コンウェイの法則: ソフトウェアを設計する組織はそのコミュニケーション構造をまねた構造の設計を
-生み出してしまう
-逆コンウェイ戦略: コンウェイの法則を逆手に取り最初から作りたいアーキテクチャ・コミュニケーシ
-ョン設計に合わせた組織構造を作る
-出典: 変われない組織が目指すべき、GAFAMに浸透する「逆コンウェイの法則」とは
-チームの分け方の観点
-どれくらいの規模になったら分けるのか、に対する目安
-Amazonの2ピザルール
-ピザ2枚では足りない大きさのチームは編成すべきではない
-どうチームを分けて、チーム間のコミュニケーションはどうすれば良いのか、に対するプラクティス
-チームトポロジー
-このまとめ記事が概要の理解には良い
-認知負荷・コミュニケーション負荷を軽減するためのもの
-近年のソフトウェア開発組織で多く採用されている
-DeNAのデータ/AI関連部署等でも採用されている
-逆コンウェイ戦略に基づいてどうチームを作るか
-コードに関する型作り
-コーディング規約
-コードの書き方に関するチーム内の取り決め（命名規則、インデント、コメント方針など）
-規約の例
-PEP8：Python の標準的なスタイルガイド
-Google Python Style Guide：Google のスタイ
-ルガイド
-規約で定めること
-インデント（スペース/タブ、幅）
-命名規則（camelCase/snake_case）
-行の長さ制限
-コメントの書き方
-クラス・関数の構造
-ファイル構成
-etc
-実務では既存の標準的な規約をベースに、プロジェクト固有のルールを追加することが一般的。
-規約に沿っているかをFormatterやLinterを使ってチェックすることが一般的。
-なぜコーディング規約が必要か
-規約がない場合の問題
-人によって書き方がバラバラ
-コードの可読性低下
-レビューが困難
-バグの混入リスク増加
-保守性の低下
-新メンバーの学習コスト増大
-規約のメリット
-コードの一貫性確保
-可読性・保守性の向上
-レビューの効率化
-バグの早期発見
-チーム全体の生産性向上
-知識共有の促進
-原則
-DRY："Don't Repeat Yourself"の略。同じコードを重複させず、一箇所にまとめるという原則
-KISS："Keep It Simple, Stupid"の略。コードはできるだけシンプルにすべきという原則
-YAGNI："You Aren't Gonna Need It"の略。「今必要な機能・コード以外は書かない」という原則
-似た話としてOver Engineeringやビルドトラップがある
-精度100%を目指してしまう
-基盤モデルを使う際に必要以上に高性能なモデルを使ってしまう
-ユーザー数が少ない社内システムで秒間数万アクセスに耐えられるアーキテクチャを構築してしまう
-ユーザーではないステークホルダーの声を聞いて不要な機能を作ってしまう
-使われていない機能を残し続けてしまう
-etc
-→ QCDSを考えて機能要件・非機能要件を定義することが重要
-その他様々な原則があるので興味ある方は調べてみてください。
-コード品質の維持と CI/CD・自動化
-コード品質チェック
-FormatterやLinterなどのツールを活用してコードの問題を早期に検出する
-Python のツール
-Formatter : ruff, black, isortなど
-Linter : ruff, flake8, pylintなど
-Type Checker : pyrefly, ty, mypyなど
-Dead Codeのチェック : vultureなど
-セキュリティチェック : banditなど
-ライセンスチェック : python-license-checkなど
-Pythonに限らず使えるツール
-semgrep, dependabot, SonarQube, Snyk, etc(主
-にセキュリティチェック)
-導入メリット
-コードの一貫性確保
-バグの早期発見
-セキュリティ問題の検出
-レビュー工数の削減
-コーディング習慣の改善
-チーム全体のコード品質向上
-Pre-commit hook
-Pythonにはpre-commitなどのpre-commit hook用のツールがある。 他の言語だとhusky等が有名。 pre-
-commit hook自体は言語問わず使えるため、例えばフロントエンドのコード等も含めて同じGitレポジトリ
-で管理する場合(モノレポ)、いずれかのツールに統一する。
-pre-commitの使用例
-新規ディレクトリで以下を実行して初期化
-その後、例えば生成されたhello.pyのどこかの行の
-末尾に空白を入れてコミットしようとするとエラー
-になる。
-pre-commit hookで実行する
-ことの例
-前ページで紹介したツール
-単体テストの実行(pytest等)
-機密情報をcommitしてないかチェック(git-
-secrets等)
-ファイルサイズのチェック
-etc
-git hooksの一部でGitのコミット時にコードの規約違反の検知や単体テストを実行する仕組み
-git init
-uv init # pip等を使ってる方は読み替えてください
-uv add --dev pre-commit
-pre-commit sample-config > .pre-commit-config.yaml
-pre-commit install
-CI/CD
-CI (Continuous Integration)
-継続的インテグレーション
-CD (Continuous Delivery)
-継続的デリバリー/デプロイメント
-CI/CD ツールの例
-GitHub Actions：GitHub と統合された CI/CD
-GitLab CI：GitLab と統合された CI/CD
-CircleCI：クラウドベースの CI/CD プラットフォーム
-Jenkins：オープンソースのCI/CDツール
-第5回の復習
-CDを実現する上で重要な概念
-Feature Flag
-デプロイされてるけどリリースされていない、という状態を作り、コードはどんどんマージ＆デプロイする
-実際は様々な種類のFeature Flagがある。
-参考: https://martinfowler.com/articles/feature-toggles.html
-if feature_flags.is_enabled(FEATURE_A):
-    # 新しいモデルの呼び出し
-else:
-    # 古いモデルの呼び出し
-自動チェックの重要性と設計
-pre-commit hookとCIの使い分け
-pre-commit hookではLinter, Formatter、一部の単体テスト等の軽いもの
-変更箇所にのみ実行する設定にすることもある
-エディタ/IDEの保存時のアクションで実行する場合・実行するものもある
-CIではpre-commitで実行するものに加えて重めのテスト等も実行する
-pre-commit hookはスキップできてしまうため、pre-commit hookでチェックする内容も再度チェッ
-クするのが一般的
-featureブランチへのpush/プルリクエストに対して実行するもの・main でのみ実行するもの、等の
-設計も重要
-「どうせCIでチェックするならすべてCIでやればいいのでは？」
-→そうしているチームもある。ただ、軽いものや機密情報のチェック等はpush前にできると良い。いずれに
-せよどこかで自動でチェックして品質を担保するという思想が重要。
-pre-commit hookとCIの使い分けを設計して品質を担保するのが重要
-コード以外の観点での型作り
-ワーキングアグリーメント
-チームで協働する上での約束事をチーム全員で話し合い明文化したもの
-ワーキングアグリーメントの例
-15分悩んで進まなかったら誰かに相談する
-Slackのメンションは気を使わずに付けて受け手
-が通知をコントロールする
-日中のオンライン会議ではビデオはオンにする
-本番リリースは2名体制で行う
-レビュー依頼は24時間以内に反応する
-ワーキングアグリーメントのメリット
-チームメンバー間の期待値を揃える
-暗黙知を明文化
-摩擦やコンフリクトの軽減
-新メンバーの早期適応を支援
-チームの生産性向上
-自律的なチーム運営の促進
-ルールではなくアグリーメントで継続的に更新していくのが重要。
-公開している会社も多いのでぜひ調べてみてください。
-その他
-目標管理
-OKRなどを使ってチームの目標と個人の目標をアラインさせて管理
-KPIツリーなどを作成して事業やプロダクトの目標を管理
-もちろん組織全体で統一的なものがあるはずなのでそれに合わせることが重要
-インセプションデッキなどを使った認識合わせ
-テンプレート
-会議体設計
-スクラム等のフレームワークを使うとセットで設計できる
-上記のような観点をまとめてプロジェクトのテンプレートとしてNotionやConfluenceなどに共通フォーマ
-ットとして置いておくことが多い。
-以下のような点でも型作りをすると良い(一例)
-Git/GitHub を使ったチーム開発
-Git/GitHubの基礎
-チームで開発する際の使い方を学ぶ
-ちなみに
-GitHubではなくGitLabなどの他のクラウドサービスを使うところも多い
-情報管理が厳しいところだと社外にコードを置けないため、GitHub Enterprise ServerやGogsなどのOSS
-を使ってセルフホストすることも多い
-そもそもGitではなくSubversionやMercurialなどを使うこともある
-GoogleはPiperという独自のものを使っている
-基本的な使い方は第6回までに学習済みのため割愛
-プルリクエスト (PR) とコードレビュー
-プルリクエストとは自分の変更を他の開発者に通知し、レビュー＆マージを依頼する機能。
-品質の向上のためだけでなく、チームに自分が書いたコードを理解してもらうために行う。
-なお、プルリクエストはGitHubでの呼び方で、GitLabでは同様の機能をマージリクエスト(MR)と呼ぶ。
-コードレビューのガイドラインやプラクティス
-ガイドラインを公開している会社が多々ある
-https://google.github.io/eng-
-practices/review/
-https://docs.gitlab.com/development/code_review/
-https://future-
-architect.github.io/articles/20250502a/
-AIによるレビューを行うことも増えてきた
-Copilot Code Review
-https://github.com/qodo-ai/pr-agent
-よく盛り込まれる項目
-コーディング規約を満たしているか
-いつまでにレビューするか
-プルリクエストのサイズ
-コメントの書き方
-etc
-ブランチ戦略
-チーム開発では混乱を避けるためのブランチの運用ルールを事前に決めるのが一般的
-Gitflow
-GitHub flow
-GitLab flow
-Trunk-based development
-上記とは異なる観点でforkするかしないかもある
-参考: https://qiita.com/ucan-lab/items/371cdbaa2490817a6e2a
-マージの方法
-ブランチ戦略と合わせてマージの方法も認識を合わせるのが一般的
-Squash & Merge
-Rebase
-Merge Commit
-参考: https://qiita.com/ko-he-8/items/94e872f2154829c868df
-その他チームで開発する際に採用すると良いプラクテ
-ィス
-TDD(Test Driven Development)
-ATDDなどの派生形も
-ペアXXX、モブXXX
-ペアプログラミング、モブプログラミング、モブテスト、モブコスト分析、etc
-etc
-プロジェクトマネジメントの基礎
-プロジェクトとは
-Wikipediaによると「何らかの目標を達成するための計画」
-PMBOKによると「独自のプロダクト、サービス、所産（しょさん）を創造するために実施する、有期性
-のある業務である」
-今後皆さんが関わるであろうプロジェクトは基本的には
-「依頼者とQCDS(Quality/Cost/Delivery/Scope)を合意形成しながら開発する業務」
-機械学習を使ったプロジェクトのフェーズ
-PoC (Proof of Concept)
-モデルの精度や実現可能性の検証
-MVP(Minimum Viable Product)開発
-フィードバックを貰って改善を繰り返すことを前提とした必要最低限の価値を提供できるプロダクト
-本番システム開発
-実際に業務で利用されビジネスインパクトを出すシステム(プロダクト)
-PoCで精度の検証を行い、その後MVPの開発、本番システム開発へと進むのが一般的。
-MVPを作らずに本番システム開発をするケース(要件が明確な場合)やPoCフェーズを分けずにMVP・本番シス
-テムの開発を行うケース(社内システム等リスクが限定的な場合やシステムそのものに価値がある場合)も例
-外的にはありえる。
-いずれにせよフェーズの境界やスコープを意識する
-ゴール・目標設定
-どのフェーズだとしてもプロジェクトの最初にゴールや目標を明確化することが重要
-例
-「90%以上の精度を持つ画像分類モデルを 6 月末までに開発する」
-「顧客離脱予測システムを 3 ヶ月で構築し、離脱率を30%削減する」
-「現行の手動分類作業を自動化し、作業時間を 50%削減する」
-曖昧な目標設定はプロジェクトの失敗に繋がるため、SMART(S: Specific, M: Measurable, A: Achievable, R:
-Relevant, T: Time-bound)などのフレームワークを使ってより具体的に設定する。
-タスク分解とマイルストーン
-大きなタスクは見積もり可能な小さなタスクに分解して工数を見積もる。
-分解する際はINVEST原則などを参考に分解する
-WBS(Work Breakdown Structure)などで可視化しガントチャートなどを作成して進捗管理をする。
-出典: https://www.jooto.com/contents/wbs-ganttchart/
-ゴールや目標を立てたらそれを達成するためのタスクに分解し見積もりを行う。
-タスク分解とマイルストーン
-マイルストーンの置き方は様々
-フェーズごとに置く
-要件定義、設計、開発、etc
-重要なイベントごとに置く
-社内レビュー、顧客レビュー、etc
-作業に合わせて置く
-データ収集完了、前処理完了、モデル開発完了
-いずれにせよクリティカルパスを意識することが重要。
-また、依存関係を可視化して管理すると良い。
-分解したらマイルストーン(プロジェクトの中間目標・チェックポイント)を設定する
-不確実性コーン
-出典: https://xtech.nikkei.com/it/article/COLUMN/20131001/508039/
-プロジェクトが進行するにつれて見積もりのバラツキがどのように推移していくのかを表すもの
-機械学習プロジェクトではより不確実性が高い
-2つの不確実性の山 (スライド)
-PoCはそもそも不確実性の塊
-テスト工程でも山がある
-プロジェクトは不確実性との戦い
-計画
-ウォーターフォール型の開発の例
-不確実性を見込んでバッファを積んだ見積を行う。
-計画を立てる際の問題
-学生症候群
-制限時間直前になって初めて課題に取り組み始める
-パーキンソンの法則
-仕事の量は完成のために与えられた時間を全て満たすまで膨張する
-これらの問題に対応するため
-バッファを一箇所に集める
-CCPM(Critical Chain Project Management)と呼ばれる手法
-参考:
-参考: https://products.sint.co.jp/obpm/blog/serial-umeda06
-計画を立てる際の問題
-学生症候群
-制限時間直前になって初めて課題に取り組み始める
-パーキンソンの法則
-仕事の量は完成のために与えられた時間を全て満たすまで膨張する
-そもそもバッファは必要なのか
-約束は開発を遅らせる
-上記に対する考察的なもの
-アジャイル開発
-見積をするのは直近の開発のみ。直近は不確実性が
-低いのでバッファを極力積まない。
-各イテレーションをスプリントと呼びスプリント単
-位で価値を届ける。
-出典: https://seleck.cc/scrum
-プロジェクトは長期に渡るものだが各イテレーションは短い期間に区切ってバッファを積まずに全力で走る
-ことから、マラソンではなくスプリント(短距離走)と呼ばれる。
-なお、説明の流れで部分的な紹介に留めたが、本来スクラムは「変化に適応しながら、顧客へより良い価値
-を提供し続ける」ためのもの
-出典: https://scruminc.jp/blog/6558/
-最も有名なアジャイル開発フレームワークであるスクラムを紹介
-ウォーターフォールとアジャイル
-ウォーターフォール型開発
-順序立てて段階的に進める
-要件定義 → 設計 → 実装 → テスト → 運用
-各フェーズが完了してから次に進む
-変更に弱い
-コストが可変のときに向いている
-アジャイル型開発
-反復的・漸進的に進める
-短いサイクル（スプリント）で機能を追加
-フィードバックを取り入れながら改善
-変更に強い
-スコープが可変のときに向いている
-どちらを選ぶか
-プロジェクト・チーム・開発対象の様々な特性を考慮したうえで適切な方法を選
-ぶ
-受託開発か自社開発か
-準委任契約か請負契約か
-内製か外注か
-PoCか本開発か
-専任メンバーが中心か兼任メンバーが中心か
-QCDSで何が重要か
-チームの習熟度
-etc
-機械学習プロジェクト特有のマネジメント
-リスクとフィージビリティ評価
-計画段階でリスクを洗い出し、フィージビリティ（実現可能性）評価を行うことが重要
-主なリスク
-データ不足・データ品質問題
-目標精度の達成困難
-計算リソースの制約
-モデル説明可能性の課題
-本番環境での性能劣化
-データドリフト（時間経過による変化）
-評価のポイント
-必要なデータは入手可能か
-目標精度は現実的か
-技術的な課題は解決可能か
-リソース（時間・予算・人員）は十分か
-法的・倫理的な問題はないか
-計算コスト・運用コストは問題ないか
-機械学習プロジェクトではPoC段階で精度だけでなく本番導入を見据えた評価をすることが重要
-PoC 貧乏を回避する
-PoCばかり繰り返して本開発に至らない状態を「PoC貧乏」と呼ぶ
-PoC 貧乏の原因
-成功基準の不明確さ
-過度な期待と技術理解不足
-本番投入への決断力欠如
-データ品質・量の問題
-組織的な障壁（予算・人員等）
-「完璧」を求めすぎる姿勢
-PoC 貧乏の回避策
-明確な成功/失敗基準の設定
-期限を決めて評価する
-成功したらすぐに MVP 開発へ移行
-失敗したら早めに見切りをつける
-小さく始めて段階的に拡大
-「完璧」より「十分良い」を目指す
-営利企業であれば本来はPoC→本開発を経て業務で利用してビジネスインパクトを出すことが目的。
-PoC自体が目的となることは無い（プレスリリースが目的になる等の例外はある）。
-参考: PoC貧乏になる原因と対策の研究
-生成AIブームで多発の可能性　「PoC貧乏」をどう回避するか
-GitHub を使ったプロジェクトマネジメント
-コード管理以外にGitHubでできること
-Issues：タスク・バグ管理
-Projects：プロジェクト管理
-Wiki：ドキュメント作成
-Actions：CI/CD
-Discussions：議論
-GitHub Issues と Projects
-GitHub Issues
-タスク・バグ・機能要望の管理
-担当者のアサイン
-ラベル付け（bug, enhancement 等）
-マイルストーンへの関連付け
-PR との連携（PR がマージされたらIssueもClose
-する等）
-テンプレート機能
-GitHub Projects
-カンバン形式やロードマップ形式のタスク管理
-ToDo/In Progress/Done 等のパイプライン
-Issue やプルリクエストの視覚化
-進捗状況の一覧表示
-自動化機能（PR がマージされたら Done に移動
-等）
-チーム全体での状況共有
-Jira, Asanaなどの専用ツールやNotionやスプレッドシートなどの汎用的なツールを使うことも多い。
-まとめと Q&A
-今回一番伝えたかったこと
-チームで開発する際は型作りが重要
-型作りの元となる原理原則やベストプラクティスを学ぶことが重要
-ベストプラクティスを導入しようとしてできないときは改善の機会のことが多い
-プロジェクトは不確実性とどう戦うかが重要
-本番開発も含めたAIエンジニアリングはチームスポーツで総合格闘技
-チームで役割分担・協業をしてチームの力を最大限発揮するのが重要
-プロジェクトマネジメントもチーム開発もテーマが広いので一部のみ紹介
-他にも様々な観点があるのでぜひ継続的に学んでみてください
-AI を使ったコーディング/要件定義/設計/テスト/etcが主流になったらどうなるか？
-ありがとうございました
+Algorithms and Data Structure II
+§5 Shortest Path 
+Problems
+AY2021, 2Q
+https://elms.u-aizu.ac.jp/course/view.php?id=4968
+Yuichi Yaguchi, Ph.D (CSE)
+Robot Engineering Lab., University of Aizu
+Chap. 1
+Shortest Path Problem
+§5 Shortest Path Problems
+(Review)
+Path and Cycle
+• A path in a graph is a sequence of edges of the form (v1,v2), 
+(v2,v3), ..., (vn-1,vn). The path is from v1 to vn of length n-1. 
+• As a special case, a single vertex denotes a path of length 0 from 
+itself to itself. 
+• A path is simple if all edges and all vertices on the path, except 
+possibly the first and the last vertices, are distinct.
+• A cycle is a simple path of length at least 1 which begins and ends 
+at the same vertex. In an undirected graph, a cycle must be of length 
+at least 3.
+f
+b
+c
+e
+d
+a
+f
+b
+c
+e
+d
+a
+Simple
+Cycle
+Shortest Path
+• Shortest Path: A path from a node to the other node which 
+makes minimum summation of all edge weight. 
+• Let G(V, E) be a weighted graph with non-negative edge distances 
+(or costs). 
+• For edge (u,v), the distance of (u,v) is denoted by d(u,v).
+• The distance of a path P, denoted by d(P), is the sum of the 
+distances of edges in the path. 
+• For two nodes u and v in G, the shortest path from u to v is the path 
+P such that 
+𝑑𝑃= min 𝑑𝑄
+𝑄is a path from 𝑢to 𝑣}
+Principle of Optimization
+• Let u →v →w be a shortest path from u to w. 
+Then u →v is a shortest path from u to v and v →w is a 
+shortest path from v to w.
+u
+v
+w
+Optimal
+Optimal
+The other path is not optimal
+Types of Shortest path problem
+• Single source shortest path problem and all pairs shortest 
+path problem are the most important shortest path problems. 
+• Single source shortest path problem is the problem of finding the 
+shortest paths from a specific vertex s, called source, to all other 
+vertices of G (connected graph). 
+• All pairs shortest path problem finds the shortest paths between 
+every pair of vertices in G (sources are all vertices 
+in G). 
+Single Path Shortest Path Problem
+• Shortest path spanning tree:
+• Let G(V,E) be a weighted graph with non-negative edge distances, 
+and let s be a vertex of G from which every vertex of G can be 
+reached. 
+• Then there exists a spanning tree T of G, rooted as s, which contains 
+a shortest path from s to every vertex of G. 
+f
+b
+c
+e
+d
+a
+12
+2
+5
+7
+4
+8
+7
+6
+9
+3
+f
+b
+c
+e
+d
+a
+2
+5
+6
+3
+A Weighted Graph G
+A Shortest Path Spanning Tree T’ of G
+9
+Chapter 1. Quiz
+1. Please find a shortest path from node (f) to node (d)
+2. Please find a shortest path from (e) to (c)
+Chap. 2
+Dijkstra’s Algorithm
+§5 Shortest Path Problems
+Single Path Shortest Path Problem
+• Shortest path spanning tree:
+• Let G(V,E) be a weighted graph with non-negative edge distances, 
+and let s be a vertex of G from which every vertex of G can be 
+reached. 
+• Then there exists a spanning tree T of G, rooted as s, which contains 
+a shortest path from s to every vertex of G. 
+f
+b
+c
+e
+d
+a
+12
+2
+5
+7
+4
+8
+7
+6
+9
+3
+f
+b
+c
+e
+d
+a
+2
+5
+6
+3
+A Weighted Graph G
+A Shortest Path Spanning Tree T’ of G
+9
+Dijkstra’s Algorithm
+• Pseudo code
+S = {s}; d[s] = 0;
+for (v V- S) d[v]: = D[s,v];
+while (S V) {
+Choose a vertex w in V-S such that 
+d[w] is a minimum;
+add w to S;
+for (v V- S) 
+d[v] = min{d[v],d[w]+D[w,v]};
+}
+• In the algorithm, graph G(V,E) 
+is represented by distance 
+matrix D.
+• If the graph is represented by 
+an adjacent (distance) matrix, 
+the time complexity of 
+Dijkstra's algorithm is O(|V|2). 
+/* s is the source vertex and S is the partial solution set such that 
+the shortest paths from s to each vertex in S lies wholly in S.
+For each vertex v V-S, d[v] contains the distance of current 
+shortest path from s to v passing only through vertices of S.*/
+Dijkstra’s Algorithm - Example
+• Initially:
+S = {v0}, d[v0] = 0,
+d[vi] is 2, +,  +, 10
+i=1, 2, 3, 4;
+• At the first iteration:
+w = v1 is selected, since
+d[v1] = 2 is minimum;
+• Then:
+d[v2] = min{+, 2+3}=5
+d[v4] = min{10, 2+7}=9
+Shortest Path Problems
+12
+v0
+v1
+v4
+v3
+v2
+2
+10
+7
+3
+6
+5
+4
+∞
+∞
+∞
+Dijkstra’s Algorithm - Example
+Itr
+S
+w
+d[0]
+d[1]
+d[2]
+d[3]
+d[4]
+Init.
+{v0}
+-
+-
+2
+∞
+∞
+10
+1
+{v0, v1}
+v1
+2
+2
+5
+∞
+9
+2
+{v0, v1, v2}
+v2
+5
+2
+5
+∞
+9
+3
+{v0, v1, v2, v3}
+v3
+9
+2
+5
+9
+9
+4
+{v0, v1, v2, v3, v4}
+v4
+9
+2
+5
+9
+9
+v0
+v1
+v4
+v3
+v2
+2
+10
+7
+3
+6
+5
+4
+∞
+∞
+Dijkstra’s Algorithm - Example
+Itr
+S
+w
+d[0]
+d[1]
+d[2]
+d[3]
+d[4]
+Init.
+{v0}
+-
+-
+2
+∞
+∞
+10
+1
+{v0, v1}
+v1
+2
+2
+5
+∞
+9
+2
+{v0, v1, v2}
+v2
+5
+2
+5
+∞
+9
+3
+{v0, v1, v2, v3}
+v3
+9
+2
+5
+9
+9
+4
+{v0, v1, v2, v3, v4}
+v4
+9
+2
+5
+9
+9
+v0
+v1
+v4
+v3
+v2
+2
+10
+7
+3
+6
+5
+4
+∞
+∞
+∞
+Dijkstra’s Algorithm - Example
+Itr
+S
+w
+d[0]
+d[1]
+d[2]
+d[3]
+d[4]
+Init.
+{v0}
+-
+-
+2
+∞
+∞
+10
+1
+{v0, v1}
+v1
+2
+2
+5
+∞
+9
+2
+{v0, v1, v2}
+v2
+5
+2
+5
+∞
+9
+3
+{v0, v1, v2, v3}
+v3
+9
+2
+5
+9
+9
+4
+{v0, v1, v2, v3, v4}
+v4
+9
+2
+5
+9
+9
+v0
+v1
+v4
+v3
+v2
+2
+10
+7
+3
+6
+5
+4
+∞
+∞
+∞
+Dijkstra’s Algorithm - Example
+Itr
+S
+w
+d[0]
+d[1]
+d[2]
+d[3]
+d[4]
+Init.
+{v0}
+-
+-
+2
+∞
+∞
+10
+1
+{v0, v1}
+v1
+2
+2
+5
+∞
+9
+2
+{v0, v1, v2}
+v2
+5
+2
+5
+∞
+9
+3
+{v0, v1, v2, v3}
+v3
+9
+2
+5
+9
+9
+4
+{v0, v1, v2, v3, v4}
+v4
+9
+2
+5
+9
+9
+v0
+v1
+v4
+v3
+v2
+2
+10
+7
+3
+6
+5
+4
+∞
+∞
+∞
+Dijkstra’s Algorithm - Example
+Itr
+S
+w
+d[0]
+d[1]
+d[2]
+d[3]
+d[4]
+Init.
+{v0}
+-
+-
+2
+∞
+∞
+10
+1
+{v0, v1}
+v1
+2
+2
+5
+∞
+9
+2
+{v0, v1, v2}
+v2
+5
+2
+5
+∞
+9
+3
+{v0, v1, v2, v3}
+v3
+9
+2
+5
+9
+9
+4
+{v0, v1, v2, v3, v4}
+v4
+9
+2
+5
+9
+9
+v0
+v1
+v4
+v3
+v2
+2
+10
+7
+3
+6
+5
+4
+∞
+∞
+∞
+Single Source Shortest Path!
+Chapter 2. Quiz
+1. Please illustrate to find a shortest path from (f) to (d) using 
+Dijkstra’s algorithm 
+Itr
+S
+w
+a
+b
+c
+d
+e
+f
+g
+Init.
+{f}
+-
+∞
+3
+3
+∞
+1
+-
+12
+Chap. 3
+Proof of Dijkstra’s Algorithm
+§5 Shortest Path Problems
+Dijkstra’s Algorithm - Proof
+• We now prove the correctness of Dijkstra's algorithm by induction 
+on the size of S. 
+• Basis. 
+• |S| = 1. The shortest path from s to itself has length 0 and a path from s to v, 
+wholly within S except for v, consists of the single edge (s,v). Thus, d[v] was 
+correctly computed. 
+(for 𝑣∈𝑉−𝑆𝑑𝑣≔𝐷𝑠, 𝑣; )
+• Induction Hypothesis. 
+• Assume the following statements are true for |S| = k 1: S is the partial 
+solution set such that the shortest paths from s to each vertex in S lies 
+wholly in S. 
+For each vertex v V- S, d[v] is the distance of current shortest path from s
+to v passing only through vertices of S. 
+Dijkstra’s Algorithm - Proof
+• Inductive Step
+• For 𝑆= 𝑘, assume 𝑤∈𝑉−𝑆
+such 𝑑[𝑤] is a minimum, is 
+chosen and added to 
+𝑆( 𝑆becomes 𝑘+ 1).
+• If 𝑑[𝑤] is not the distance of a 
+shortest path from s to w, then 
+there must be a shorter path P
+such that P contains some vertex 
+other than w which is not in S. 
+• Let v be the first such vertex on P. 
+S
+s
+w
+S
+s
+w
+𝑆= 𝑘
+𝑑[𝑤]
+Not Shortest?
+Should be exist!
+P
+Dijkstra’s Algorithm - Proof
+• But then the distance from s to v is 
+shorter than d[w], and moreover, the 
+shortest path from s to v lies wholly 
+within S, except for v itself.
+• Thus, by the inductive hypothesis, 
+d[v] < d[w], a contradiction. 
+• We conclude that the path P does not 
+exist and d[w] is the distance of the 
+shortest path from s to w that lies 
+wholly in S. From the update 
+operation
+𝑑𝑣= min 𝑑𝑣, 𝑑𝑤+ 𝐷𝑤, 𝑣
+,
+we know d[v] are correctly computed.
+S
+s
+v
+w
+S
+s
+v
+w
+Shortest!
+The other paths 
+are not short
+Doubt!
+An Efficient Implementation of Dijkstra's
+Algorithm 
+• Pseudo code
+S = {s}; d[s] = 0;
+for (v V-S) d[v]: = D[s,v];
+for (v V-S) construct d[v] into a
+minimum heap;
+while (S V) {
+delete d[w] from the heap and add w
+to S; 
+for (v V-S) if ((w,v) E){
+d[v] = min{d[v],d[w]+D[w,v]};
+restore the heap condition;
+}
+}
+• Dijkstra's algorithm can be made 
+more efficiently by maintaining 
+the graph using adjacency lists 
+and keeping a priority queue of 
+the nodes not in S. 
+• Under this implementation, the 
+time complexity of Dijkstra's
+algorithm is O((|V|+|E|)log|V|). 
+/* s is the source vertex and S is the partial solution set such that 
+the shortest paths from s to each vertex in S lies wholly in S.
+For each vertex v V-S, d[v] contains the distance of current 
+shortest path from s to v passing only through vertices of S.*/
+Difference between MST and SPST
+• In Prim’s algorithm (Minimum Spanning Tree), vertices and edges 
+are added to a tree one by one, each step choosing the shortest 
+possible edge from V to V-T to add. 
+• In Dijkstra’s algorithm (Shortest Path Spanning Tree), the edge v
+to be added is not the closest, but minimizing d(s,v) + D[w,v].
+v0
+v1
+v4
+v3
+v2
+2
+10
+7
+3
+6
+5
+4
+v0
+v1
+v4
+v3
+v2
+2
+3
+5
+4
+v0
+v1
+v4
+v3
+v2
+2
+7
+3
+4
+Minimum Spanning Tree
+Shortest Path from v0
+Target graph G
+Shortest Paths in the Graph with Unit Edge 
+Length 
+• Given a graph G(V,E) whose distances of edges are 1. 
+• The shortest path from u to v is the path from u to v with the 
+minimum length (the number of edges). 
+• Dijkstra's algorithm may be used to solve this problem. 
+However, a simpler algorithm for this problem is BFS 
+algorithm. 
+25
+Shortest Path Problems
+Chapter 3. Quiz
+1. Please illustrate to find a shortest path from (e) to (c) using 
+Dijkstra’s algorithm 
+Itr
+S
+w
+a
+b
+c
+d
+e
+f
+g
+Init.
+{e}
+-
+5
+5
+∞
+8
+-
+1
+4
+• Shortest Path: A path from a node to the other node which 
+makes minimum summation of all edge weight. 
+• Dijkstra’s Algorithm:
+• If the graph is represented by an adjacent (distance) matrix, the 
+time complexity of Dijkstra's algorithm is O(|V|2). 
+• If the graph using adjacency lists and keeping a priority queue of the 
+nodes not in S, the time complexity of Dijkstra's algorithm is 
+O((|V|+|E|)log|V|). 
+Wrap up today’s class
+Extra Chap.
+Longest Path and Flow
+§5 Shortest path problems
+Longest Path ?
+The longest path problem is the 
+problem of finding a simple path of 
+maximum length in a given graph. 
+• From (a) to (g)
+• Shortest: a → g: cost 8
+• Longest: ?
+• LPP is NP-Hard
+• So many “Efficient Algorithm” are there 
+but still this is NP-Hard (with 
+combination explosion)
+How many pattern of “Flow” are there?
+• From source (s) to terminal (t), if it has 
+no-return (no cycle), we can find many 
+paths from source to terminal
+• We call “Flow” from s to t.
+• s – b – c – t
+• s – b – c – e – t
+• s – b – f – t
+• s – c – t
+• s – c – e – t
+• s – e – t
+• s – f – t 
+f
+b
+c
+e
+t
+s
+Definition of Network Flow
+• s-t (source to sink) flow of a graph G = (V,E):
+• For an edge e∈E, Let we think the capacity of edge c(e) and the 
+flow of edge f(e)
+• Flow function f(e) is satisfy the following
+constraints:
+• 0 ≦ f(e) ≦ c(e)
+• About v ∈ V ＼ {s,t} , 
+. (input) σ𝑒∈𝛿−𝑣𝑓𝑒= (output) σ𝑒∈𝛿+(𝑣) 𝑓𝑒
+• Maximum Flow Condition:
+• max(σ𝑒∈𝛿+ 𝑠𝑓𝑒) = max(σ𝑒∈𝛿−(𝑡) 𝑓𝑒)
+f
+b
+c
+e
+t
+s
+12
+3
+6
+4
+2
+10
+6
+6
+8
+4
+How to find Maximum Flow?
+• If we define the capacity of each 
+path as left figure:
+• s to b can send “12” or less
+• s to c can send “3 + 4” or less (in spite 
+of s to b can send until 12)
+• s to f can send “6 + 2” or less (in spite 
+of s to b can send until 12)
+• How to calculate maximum flow 
+from s to t ?
+f
+b
+c
+e
+t
+s
+12
+3
+6
+4
+2
+10
+6
+6
+8
+4
+Ford-Fulkerson
+f
+b
+c
+e
+t
+s
+12
+3
+6
+4
+2
+10
+6
+6
+8
+4
+Ford-Fulkerson
+➢After
+every
+step
+in
+the
+algorithm
+the
+following
+is  
+maintained:
+≤ 𝑐(𝑢, 𝑣)
+• Capacity Constraints
+: ∀𝑢, 𝑣𝜖𝐸
+𝑓𝑢,𝑣
+➢
+The flow along an edge can not exceed its capacity.
+• Skew Symmetry
+: ∀𝑢, 𝑣𝜖𝐸
+𝑓𝑢,𝑣= −𝑓(𝑣, 𝑢)
+ich
+net flow to a node is zero, except for the source, wh
+➢
+The net flow from u to v must be the opposite of the net flow from v to u
+• Flow Conservation :
+➢
+Unless u is s or t. The
+"produces" flow, and the sink, which "consumes" flow.
+Example of Ford-Fulkerson
+f
+b
+c
+e
+t
+s
+12/0
+3/0
+6/0
+4/0
+2/0
+10/0
+6/0
+6/0
+8/0
+4/0
+f
+b
+c
+e
+t
+s
+12/3
+3/3
+6/3
+4/0
+2/0
+10/0
+6/0
+6/0
+8/0
+4/0
+f
+b
+c
+e
+t
+s
+12/3
+3/3
+6/3
+4/0
+2/0
+10/0
+6/0
+6/0
+8/0
+4/0
+3
+0
+9
+f
+b
+c
+e
+t
+s
+12/3
+3/3
+6/6
+4/3
+2/0
+10/0
+6/0
+6/0
+8/0
+4/0
+0
+0
+9
+1
+Example of Ford-Fulkerson
+f
+b
+c
+e
+t
+s
+12/3
+3/3
+6/6
+4/3
+2/0
+10/0
+6/6
+6/6
+8/0
+4/0
+0
+0
+9
+1
+0
+0
+f
+b
+c
+e
+t
+s
+12/3
+3/3
+6/6
+4/3
+2/0
+10/0
+6/6
+6/6
+8/4
+4/4
+0
+0
+9
+1
+0
+0
+0
+4
+f
+b
+c
+e
+t
+s
+12/3
+3/3
+6/6
+4/4
+2/0
+10/1
+6/6
+6/6
+8/5
+4/4
+0
+0
+9
+0
+0
+0
+0
+3
+9
+f
+b
+c
+e
+t
+s
+12/3
+3/3
+6/6
+4/4
+2/0
+10/1
+6/6
+6/6
+8/5
+4/4
+s->17
+17-> t
+Algorithms and Data Structure II
+§5 Shortest Path 
+Problems
+AY2021, 2Q
+https://elms.u-aizu.ac.jp/course/view.php?id=4968
+Yuichi Yaguchi, Ph.D (CSE)
+Robot Engineering Lab., University of Aizu
+See you next time!

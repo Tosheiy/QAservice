@@ -5,9 +5,11 @@ import re
 import os
 from dotenv import load_dotenv
 
-
-from src.QAModel import QAItem
 from src.SourceData import SourceData
+
+from models import QAItemModel
+
+
 
 load_dotenv()
 OPENAI_APIKEY = os.getenv("OPENAI_API_KEY")
@@ -116,22 +118,18 @@ def ask_llm_by_chunks(s_data: SourceData):
 
     qa_list = []
     qa_id = 0
-    id_num = 0
+    id = "hoge"
     created_at = datetime.now().strftime("%Y%m%d%H%M")
     for text in s_data.chunk_text:
         
         question, options, answer = get_response_with_retry(client, system_text=system_text, send_text=text, mode=s_data.mode)
         
-        qaitem = QAItem(
-            id=id_num,
+        qaitem = QAItemModel(
+            id=id,
             qa_id=qa_id,
-            created_at=created_at,
             question=question[0],
             options=options,
             answer=answer[0],
-            mode=s_data.mode,
-            difficulty=s_data.difficulty,
-            title=s_data.filename
         )
         qa_id += 1
         qa_list.append(qaitem)
