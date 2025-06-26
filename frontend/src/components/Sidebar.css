@@ -1,0 +1,52 @@
+.sidebar {
+    width: 220px;
+    background-color: #f5f5f5;
+    padding: 1.5rem;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar h2 {
+    margin-bottom: 1rem;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-item {
+    cursor: pointer;
+    padding: 12px 16px;
+    transition: background-color 0.2s;
+}
+
+.sidebar-item:hover {
+    background-color: #f0f0f0;
+    /* 任意の hover 色 */
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    /* ビューポートの高さ */
+    background-color: #f5f5f5;
+    padding: 1.5rem;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+    /* 長くなった時にスクロール */
+    z-index: 1000;
+    /* 他要素より前に出す */
+}
+
+.main-content {
+    margin-left: 260px;
+    /* ← Sidebar と同じ幅に */
+    padding: 2rem;
+}

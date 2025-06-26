@@ -1,0 +1,122 @@
+.qaedit-container {
+    padding: 1rem 2vw;
+    max-width: 960px;
+    margin: auto;
+}
+
+.qaedit-title-input {
+    margin-bottom: 1rem;
+}
+
+.qaedit-input-title {
+    width: 100%;
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+.qaedit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+}
+
+.qaedit-classname-box {
+    flex-grow: 1;
+    margin-right: 1rem;
+}
+
+.qaedit-label {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.qaedit-date {
+    font-size: 1rem;
+    color: #777;
+}
+
+.qaedit-list {
+    list-style: none;
+    padding: 0;
+}
+
+.qaedit-item {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    background: #f9f9f9;
+}
+
+.qaedit-question {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.qaedit-input,
+.qaedit-textarea {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.qaedit-textarea {
+    height: 80px;
+    resize: vertical;
+}
+
+.qaedit-save-button {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.qaedit-save-button {
+    display: flex;
+    justify-content: center;
+    gap: 13rem;
+    margin-top: 2rem;
+}
+
+.qaedit-button {
+    padding: 10px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.qaedit-button:hover {
+    transform: scale(1.02);
+}
+
+.qaedit-button.delete {
+    background-color: #e53935;
+    color: #fff;
+}
+
+.qaedit-button.delete:hover {
+    background-color: #c62828;
+}
+
+.qaedit-button:not(.delete) {
+    background-color: #1976d2;
+    color: #fff;
+}
+
+.qaedit-button:not(.delete):hover {
+    background-color: #1565c0;
+}
