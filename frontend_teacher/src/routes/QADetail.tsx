@@ -6,7 +6,7 @@ import "./QADetail.css";
 import {
     PieChart, Pie, Cell,
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    LineChart, Line, ResponsiveContainer
+    ResponsiveContainer
 } from "recharts";
 
 
@@ -14,7 +14,7 @@ interface QAItem {
     qa_id: number;
     question: string;
     options: string[];
-    answer: string;
+    answer: string;  // <- ここを配列に変更する
 }
 
 interface QAInfo {
