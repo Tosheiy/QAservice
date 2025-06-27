@@ -14,7 +14,7 @@ interface QAItem {
     qa_id: number;
     question: string;
     options: string[];
-    answer: string;  // <- ここを配列に変更する
+    answer: string[];
 }
 
 interface QAInfo {
@@ -178,27 +178,17 @@ const QADetail: React.FC = () => {
 
                                 return (
                                     <li key={index} className="qadetail-history-card">
-                                        <p><strong>問題：</strong> {item.question}</p>
-
+                                        <div className="qa-label">問 {item.qa_id + 1}</div>
+                                        <p className="qa-content">{item.question}</p>
+                                        <div className="qa-label">選択肢</div>
                                         {/* 選択肢のリスト（記述式以外の場合のみ表示） */}
                                         {item.options.length > 0 && (
-                                            <ul style={{ textAlign: "center", listStylePosition: "inside" }}>
+                                            <ul className="qa-list">
                                                 {item.options.map((opt: string, i: number) => {
                                                     const normalizedOption = opt.trim().replace(/\s+/g, '').toLowerCase();
-
-                                                    // const normalizedAnswers = item.answer
-                                                    //     .replace(/\r?\n/g, '') // 改行削除
-                                                    //     .split('、')
-                                                    //     .map(ans => ans.trim().replace(/\s+/g, '').toLowerCase());
-                                                    const normalizedAnswers: string[] = Array.isArray(item.answer)
-                                                        ? item.answer.map(ans =>
-                                                            ans.trim().replace(/\r?\n/g, '').replace(/\s+/g, '').toLowerCase()
-                                                        )
-                                                        : item.answer
-                                                            .replace(/\r?\n/g, '')                         // 改行削除
-                                                            .split('、')                                   // "、" で分割
-                                                            .map(ans => ans.trim().replace(/\s+/g, '').toLowerCase());
-
+                                                    const normalizedAnswers = item.answer.map(ans =>
+                                                        ans.trim().replace(/\r?\n/g, '').replace(/\s+/g, '').toLowerCase()
+                                                    );
 
                                                     const isCorrect = normalizedAnswers.includes(normalizedOption);
 
@@ -229,7 +219,14 @@ const QADetail: React.FC = () => {
                                         )}
 
 
-                                        <p><strong>答え：</strong> {item.answer}</p>
+                                        <div className="qa-label">答え</div>
+                                        <ul className="qa-list">
+                                            {Array.isArray(item.answer)
+                                                ? item.answer.map((ans, i) => <li key={i}>{ans}</li>)
+                                                : <li>{item.answer}</li>}
+                                        </ul>
+
+                                        <hr className="qa-divider" />
 
                                         {/* 満足度グラフ（good または bad のいずれかが 1 件以上ある場合のみ表示） */}
                                         {(satisf?.good ?? 0) > 0 || (satisf?.bad ?? 0) > 0 ? (

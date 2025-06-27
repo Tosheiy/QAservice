@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from models import QAItemModel, QAInfoModel, QAResultModel
+from models import QAItemModel, QAInfoModel, QAResultModel, Submission
 from db import qa_item_table, qa_info_table, qa_result_table
 from collections import defaultdict, Counter
 from boto3.dynamodb.conditions import Key
@@ -28,9 +28,50 @@ interface QAItem {
 
 
 
+@router.post("/submit")
+def submit_answers(submission: Submission):
+
+    # クイズ全体に対して一括取得（そのinfo_idの全qa_id分）
+    response = qa_item_table.query(
+        KeyConditionExpression=Key("id").eq(submission.qa_info_id)
+    )
+    correct_map = {
+        int(item["qa_id"]): item["answer"] for item in response.get("Items", [])
+    }
+
+    for result in submission.results:
+        # ここでクイズが合ってるか確認してcorrectに入れる
+        correct_answer = correct_map.get(result.qa_id)
 
 
-from pprint import pprint  # 見やすい出力用
+        normalized_answer = normalize(correct_answer)
+        normalized_user = normalize(result.user_answer)
+
+        print('normalized_answer:', normalized_answer)
+        print('normalized_user:', normalized_user)
+
+        # 回答が順不同で正解かどうか
+        result.correct = set(normalized_answer) == set(normalized_user)
+
+
+        print(f"正解: {repr(correct_answer)} / 回答: {repr(result.user_answer)}")
+        print(f"等しいか？: {normalize(correct_answer) == normalize(result.user_answer)}")
+
+        print(result.satisfaction)
+        
+        item = {
+            "id_qaid": f"{submission.qa_info_id}-{result.qa_id}",  # パーティションキー
+            "u_id": submission.uid,                                 # ソートキー
+            "select": result.select,
+            "user_answer": result.user_answer,
+            "satisfaction": result.satisfaction,
+            "correct": result.correct
+        }
+        qa_result_table.put_item(Item=item)
+
+    return {"message": "解答が保存されました"}
+
+
 
 @router.get("/qaanalysis/{id}")
 def get_qa_detail(id: str):
@@ -56,7 +97,6 @@ def get_qa_detail(id: str):
 
     for item in items:
         qa_id = item["qa_id"]
-        answer = item["answer"]
         options = item.get("options", [])
         norm_options = normalize(options)
 
@@ -78,7 +118,7 @@ def get_qa_detail(id: str):
             selected = r.get("select")
             uid = r.get("u_id")
             is_correct = r.get("correct")
-            satisfaction = r.get("satisfaction") # ここの満足度を計算する
+            satisfaction = r.get("satisfaction")
 
 
             if satisfaction is not None:

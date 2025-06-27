@@ -18,6 +18,7 @@ def normalize(text) -> list[str]:
     """
     if isinstance(text, list):
         items = text
+    # こちら側に入るのは望ましくない
     elif isinstance(text, str):
         text = text.strip()
         # カンマや改行で分割
@@ -46,48 +47,7 @@ def get_qa_result(id_qaid: str, u_id: str):
         raise HTTPException(status_code=404, detail="QAResult not found")
     return item
 
-@router.post("/submit")
-def submit_answers(submission: Submission):
 
-    # クイズ全体に対して一括取得（そのinfo_idの全qa_id分）
-    response = qa_item_table.query(
-        KeyConditionExpression=Key("id").eq(submission.qa_info_id)
-    )
-    correct_map = {
-        int(item["qa_id"]): item["answer"] for item in response.get("Items", [])
-    }
-
-    for result in submission.results:
-        # ここでクイズが合ってるか確認してcorrectに入れる
-        correct_answer = correct_map.get(result.qa_id)
-
-
-        normalized_answer = normalize(correct_answer)
-        normalized_user = normalize(result.user_answer)
-
-        print('normalized_answer:', normalized_answer)
-        print('normalized_user:', normalized_user)
-
-        # 回答が順不同で正解かどうか
-        result.correct = set(normalized_answer) == set(normalized_user)
-
-
-        print(f"正解: {repr(correct_answer)} / 回答: {repr(result.user_answer)}")
-        print(f"等しいか？: {normalize(correct_answer) == normalize(result.user_answer)}")
-
-        print(result.satisfaction)
-        
-        item = {
-            "id_qaid": f"{submission.qa_info_id}-{result.qa_id}",  # パーティションキー
-            "u_id": submission.uid,                                 # ソートキー
-            "select": result.select,
-            "user_answer": result.user_answer,
-            "satisfaction": result.satisfaction,
-            "correct": result.correct
-        }
-        qa_result_table.put_item(Item=item)
-
-    return {"message": "解答が保存されました"}
 
 
 @router.get("/qaresult/{id}")

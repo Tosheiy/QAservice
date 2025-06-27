@@ -6,13 +6,13 @@ class QAItemModel(BaseModel):
     qa_id: int
     question: str
     options: List[str]
-    answer: str
+    answer: List[str] # リストを受け取るように変更
 
 class QAItemUpdateModel(BaseModel):
     qa_id: int
     question: Optional[str] = None
     options: Optional[List[str]] = None
-    answer: Optional[str] = None
+    answer: Optional[List[str]] = None # リストを受け取るように変更
     satisfaction: Optional[int] = None
 
 class QAInfoModel(BaseModel):

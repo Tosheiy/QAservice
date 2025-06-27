@@ -7,7 +7,7 @@ interface QAItem {
     qa_id: number;
     question: string;
     options: string[];
-    answer: string[]; // 複数対応
+    answer: string[];
     satisfaction: number;
 }
 
@@ -108,16 +108,21 @@ const QAEdit: React.FC = () => {
     };
 
     const isValidAnswers = (): boolean => {
-        return (
-            qaInfo?.title.trim() !== "" &&
-            qaItems.every(item => {
-                if (qaInfo?.mode === "記述式問題") {
-                    return item.answer.length > 0 && item.answer.every(ans => ans.trim() !== "");
-                } else {
-                    return item.answer.length > 0 && item.answer.every(ans => item.options.includes(ans.trim()));
-                }
-            })
-        );
+        if (!qaInfo?.title.trim()) return false;
+
+        return qaItems.every(item => {
+            const trimmedAnswers = item.answer.map(ans => ans.trim());
+
+            const hasEmpty = trimmedAnswers.some(ans => ans === "");
+            const hasDuplicate = new Set(trimmedAnswers).size !== trimmedAnswers.length;
+
+            if (qaInfo.mode === "記述式問題") {
+                return !hasEmpty && !hasDuplicate;
+            } else {
+                const allValid = trimmedAnswers.every(ans => item.options.includes(ans));
+                return !hasEmpty && !hasDuplicate && allValid;
+            }
+        });
     };
 
     return (
@@ -183,38 +188,59 @@ const QAEdit: React.FC = () => {
                         )}
 
                         <label className="qaedit-label">答え</label>
-                        {(qaInfo?.mode === "４択複数選択問題")
-                            ? item.answer.map((ans, ansIndex) => (
-                                <div key={ansIndex} className="qaedit-answer-row">
-                                    <input
-                                        className={`qaedit-input ${qaInfo?.mode !== "記述式問題" && !item.options.includes(item.answer[0]?.trim?.())
-                                                ? "invalid-answer"
-                                                : ""
-                                            }`}
-                                        value={item.answer[0] || ""}
-                                        onChange={(e) => handleAnswerChange(index, 0, e.target.value)}
-                                    />
-                                    {item.answer.length > 1 && (
-                                        <button className="qaedit-remove-answer" onClick={() => removeAnswerField(index, ansIndex)}>×</button>
-                                    )}
-                                </div>
-                            ))
-                            : (
-                                <input
-                                    className={`qaedit-input ${qaInfo?.mode !== "記述式問題" && !item.options.includes(item.answer[0]?.trim?.())
-                                            ? "invalid-answer"
-                                            : ""
-                                        }`}
-                                    value={item.answer[0] || ""}
-                                    onChange={(e) => handleAnswerChange(index, 0, e.target.value)}
-                                />
-                            )
-                        }
-
-                        {/* 答え追加ボタン（modeが４択複数問題のときのみ） */}
-                        {qaInfo?.mode === "４択複数選択問題" && (
-                            <button className="qaedit-add-answer" onClick={() => addAnswerField(index)}>＋ 答えを追加</button>
+                        {qaInfo?.mode === "４択複数選択問題" ? (
+                            <>
+                                {item.answer.map((ans, ansIndex) => (
+                                    <div key={ansIndex} className="qaedit-answer-row">
+                                        <input
+                                            className={`qaedit-input ${!item.options.includes(ans.trim()) ? "invalid-answer" : ""
+                                                }`}
+                                            value={ans || ""}
+                                            onChange={(e) => handleAnswerChange(index, ansIndex, e.target.value)}
+                                            placeholder={`答え ${ansIndex + 1}`}
+                                        />
+                                        {item.answer.length > 1 && (
+                                            <button
+                                                type="button"
+                                                className="qaedit-remove-answer"
+                                                onClick={() => removeAnswerField(index, ansIndex)}
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                                {item.answer.length < 4 && (
+                                    <button
+                                        type="button"
+                                        className="qaedit-add-answer"
+                                        onClick={() => addAnswerField(index)}
+                                    >
+                                        ＋ 答えを追加
+                                    </button>
+                                )}
+                                {/* 重複がある場合に警告 */}
+                                {(() => {
+                                    const trimmed = item.answer.map(ans => ans.trim());
+                                    const hasDuplicate = new Set(trimmed).size !== trimmed.length;
+                                    return hasDuplicate ? (
+                                        <p className="qaedit-warning">※ 同じ答えが複数あります</p>
+                                    ) : null;
+                                })()}
+                            </>
+                        ) : (
+                            <input
+                                className={`qaedit-input ${qaInfo?.mode !== "記述式問題" &&
+                                        !item.options.includes(item.answer[0]?.trim?.())
+                                        ? "invalid-answer"
+                                        : ""
+                                    }`}
+                                value={item.answer[0] || ""}
+                                onChange={(e) => handleAnswerChange(index, 0, e.target.value)}
+                                placeholder="答え"
+                            />
                         )}
+
                         {qaInfo?.mode !== "記述式問題" &&
                             item.answer.some(ans => !item.options.includes(ans.trim())) && (
                                 <p className="qaedit-warning">※ 答えの中に選択肢と一致しないものがあります</p>
