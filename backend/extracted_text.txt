@@ -1,12 +1,1478 @@
-10
-99999 10 8 16 13 99999 99999 99999 99999 14 
-10 99999 1 99999 99999 99999 99999 99999 99999 7 
-8 1 99999 21 99999 99999 99999 99999 9 99999 
-16 99999 21 99999 99999 15 99999 12 18 99999 
-13 99999 99999 99999 99999 3 99999 99999 99999 11 
-99999 99999 99999 15 3 99999 5 4 99999 99999 
-99999 99999 99999 99999 99999 5 99999 2 99999 99999 
-99999 99999 99999 12 99999 4 2 99999 6 99999 
-99999 99999 9 18 99999 99999 99999 6 99999 99999 
-14 7 99999 99999 11 99999 99999 99999 99999 99999 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
 1
+•
+本資料は東京大学 松尾研究室が作成し、東京大学サマースクール2023として2023年9月から11月に
+かけて開催されたLLM大規模言語モデル講座の講義資料となっております。
+•
+本資料はクリエイティブ・コモンズのCC BY-NC-SA 4.0 DEED(表示 – 非営利 – 継承 4.0 国際)のライセ
+ンスが登録されています。
+•
+ライセンスの表示について
+•
+各スライドのページ最下部にライセンスの記載がございます。再利用時にはこちらの要素も含めてご利用ください。ただしこちら
+はスライドマスターに設定されている為、再利用時に複製が困難な場合は、下記のテキストボックスを利用の上、ハイパーリンク
+も含めてライセンスの表記をする様にお願いします。
+•
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+再利用するページに参照論文等の引用がある場合は、巻末にあるReferenceより引用箇所を掲載してください。(引用元の著作権者
+に対しての再利用の正当性が証明できなくなる可能性がございます。)
+•
+非営利目的での利用に限り、再利用(2次利用)が許諾されております。
+•
+営利目的での再利用の場合はこちらからお問い合わせください。
+•
+元の表現が変わらない範囲(フォント、サイズ等)であれば改変可能です。
+•
+それ以外の改変や、その他ライセンスについての詳細は、こちらをご覧の上、適切な取り扱いをして頂く
+ようお願いします。
+•東京大学 松尾研究室 
+ 
+注意事項: 本資料の再利用(2次利用)について 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+４. Scaling Pre-training  
+サマースクール2023 大規模言語モデル 
+講師：小島・沖村  
+2023/09/15
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Scaling Pre-training（Day4） 
+3 
+●
+目的： 
+○
+言語モデルをスケール（＝大規模化）して事前学習することについて学ぶ. 
+ 
+●
+目標： 
+○
+モデルをスケールする理由について説明できる. 
+○
+モデルをスケールして事前学習する上での課題について説明できる. 
+○
+モデルをスケールして事前学習する方法について説明できる.
+○
+事前学習の一連の流れをコードで実装できる(モデルをスケールするための技術
+も含む). 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+全体の流れ 
+4 
+●講義：
+○なぜモデルをスケールさせるのか？ 
+○スケール則（Scaling Law）がもたらすもの 
+○それぞれの要素のスケールにおける問題点 
+○スケールするための技術 
+ 
+●演習：
+○PyTorchでTransformerモデルを事前学習するための一連の流れを実装(データ
+の準備, 前処理からモデルをスケールする技術を使った学習まで) 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+目次 
+5
+• なぜモデルをスケールさせるのか？
+• スケール則（Scaling Law）がもたらすもの
+• それぞれの要素のスケールにおける問題点
+• スケールするための技術：パラメータ数(N)に関連する取り組み
+• スケールするための技術：計算量(C)に関連する取り組み
+• スケールするための技術：データ(D)に関連する取り組み
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+目次 
+6
+• なぜモデルをスケールさせるのか？
+• スケール則（Scaling Law）がもたらすもの
+• それぞれの要素のスケールにおける問題点
+• スケールするための技術：パラメータ数(N)に関連する取り組み
+• スケールするための技術：計算量(C)に関連する取り組み
+• スケールするための技術：データ(D)に関連する取り組み
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール＝大規模化 
+7
+大規模 言語モデル
+Day3で説明しました.
+＊近年のLLMで使われている
+Transformerモデルは, ニューラ
+ル言語モデルの一種.
+Day4で(今から)説明します.
+＊主に, Transformerをスケール
+させる上で発生する様々な課題
+とその解決策について.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+LLM学習フロー 
+事前学習 
+大規模コーパスによる自己教師あり学習を通し、大規模言語モデルに 
+語彙・文法・基本知識といった基礎的な言語理解を獲得させる段階 
+ファインチューニング 
+ラベル付きデータによる教師あり学習を通し、事前学習済みモデルの 
+性能を改善したり、特定のタスクやドメインへの適応を実現する段階 
+ 
+RLHF 
+人間からのフィードバックを用いた強化学習を通し、大規模言語モデルの 
+出力がより人間の価値観に沿ったものとなるよう調整する段階 
+Step 1  
+Step 2  
+Step 3  
+Day3（前回） & Day4（本日）
+Day5
+Day6
+8
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Transformerを使った言語モデルのスケール化
+[1] 
+9 
+2019年
+2020年
+2018年
+2023年
+基本的にはいずれも2017年に発明されたTransformerと呼ばれる構造を利用． 
+GPT-3登場以降，米国企業を中心に複数の研究機関が独自の大規模言語モデルを開発． 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+2020年のGPT-3登場後，2022年後半から加速度的に増加．
+ 
+“A Survey of Large Language Models”, 2023年9月にアクセス（3月投稿からすでに11回Revision） [2] 
+10
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+モデル・計算量・データのスケーリングにより以下のことが実現される
+どうして開発が加速しているのか？スケーリングを動機付けるも
+の 
+11
+モデルサイズが巨大なときのみ解けるタスクが存在
+Scale Law  
+Emergent Ability  
+3つの変数に関してべき乗に従って上がる. 
+計算資源 C, データセットサイズ D, パラメータ数 N 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)　*Power-Law (べき乗則)とも呼ばれる
+ 
+“Scaling Laws for Neural Language Models” [3] 
+12
+計算資源（C）、データセットサイズ（D）、パラメータ数（N） 
+と誤差（L）の間に成立する関係性.
+• 各図のデータ点は実測値 
+• いずれの変数もTest Lossとの間に両対数グラフで線形の関係が見られる 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+13
+①パラメータ数（N）と誤差（L）の間に成立する関係性.
+Loss
+=交差エントロピー
+＊すでに対数化された
+指標になっている.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+14
+②データセットサイズ（D）と誤差（L）の間に成立する関係性.
+Loss
+=交差エントロピー
+＊すでに対数化され
+た指標になっている.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+15
+③計算資源（C）と誤差（L）の間に成立する関係性.
+PF-days：
+Peta FLOPS days（1 Peta FLOPS
+の処理速度を持つサーバを何日
+分学習に使ったか）
+＊FLOPS：
+サーバの処理速度(*本資料の補
+足)
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+16
+各青線が、異なるモデルサイズ（パラメータ）で
+学習した時の学習曲線を表している.
+③計算資源（C）と誤差（L）の間に成立する関係性.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+17
+パラメータ数Nで学習したときの学習曲線
+パラメータ数N’’ で学習したときの学習曲線
+パラメータ数N’ で学習したときの学習曲線
+*パラメータ数 N <N’ < N’’
+③計算資源（C）と誤差（L）の間に成立する関係性.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+18
+*パラメータ数 N <N’ < N’’
+N
+N’
+N’’
+モデルサイズが小さい
+と, 少ない計算資源で
+も速いスピードでLoss
+が下がるが, その後学
+習を続けてもLossが下
+がりづらくなる（サチる）
+モデルサイズが大きいと,
+少ない計算資源ではLoss
+がなかなか下がらないが, 
+学習を続けるとLossが下
+がり続けて最終的によい
+パフォーマンスとなる（サ
+チらない）
+③計算資源（C）と誤差（L）の間に成立する関係性.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+19
+*パラメータ数 N <N’ < N’’
+このレベル(横の点線)のLoss
+（パフォーマンス）を達成するの
+に最適なモデルサイズは「N’」. 
+NでもN’’でもない.
+N
+N’
+N’’
+③計算資源（C）と誤差（L）の間に成立する関係性.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+20
+*パラメータ数 N <N’ < N’’
+限られた計算資源(縦の点線)で最良のパ
+フォーマンス(Loss)を発揮するモデルサイズは
+「N’」. NでもN’’でもない.
+N
+N’
+N’’
+③計算資源（C）と誤差（L）の間に成立する関係性.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law)  
+“Scaling Laws for Neural Language Models” [3] 
+21
+*パラメータ数 N <N’ < N’’
+N
+N’
+N’’
+つまり, この直線は「任意の
+計算資源量が与えられた時
+に, その計算資源内で最良
+のパフォーマンスを発揮す
+るパラメータサイズのモデル
+で到達可能なLoss値(最適
+点)の集合」を意味する.
+③計算資源（C）と誤差（L）の間に成立する関係性.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケール則（Scaling Law) 　*Power-Law (べき乗則)とも呼ばれる 
+“Scaling Laws for Neural Language Models” [3] 
+22
+DLにおけるスケール則とは？ 
+1.
+計算資源（C） 
+2.
+データセットサイズ（D） 
+3.
+パラメータ数（N） 
+と誤差（L）の間に成立する次の経験則． 
+ 
+ 
+ 
+ 
+※ 他2つの変数が十分大きい場合． 
+ 
+α, Xc : 推定パラメータ
+X : スケール則の変数 (C or D or N)
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+“More is Different” in DL | Emergent Ability
+ 
+“Emergent Abilities of Large Language Models” [4] 
+23
+モデルサイズを巨大にすると性能が”突如”大幅に上がるタスクがある
+（量 が増えれば質が変わる）
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | 本当に創発能力なのか?  
+“Are Emergent Abilities of Large Language Models a Mirage?” [5] 
+24
+• 本当に「創発」「相転移」している
+のかには反論もある 
+– 性能の測り方による（左図） 
+※ これは本論文でも言われている 
+– 横軸が対数なのは変では 
+– そもそも何を持って創発？ 
+ 
+• 巨大モデル|巨大計算で思ったより
+できるようになるのは事実 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+“More is Different” in DL | Grokking
+ 
+“Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets” [6] 
+25
+“Progress measures for grokking via 
+mechanistic interpretability”, ICLR2023
+“Grokking: Generalization Beyond Overfitting on 
+Small Algorithmic Datasets”, 2022
+学習を継続すると突然検証データでの正解率が高まる現象
+(学習データでの正解率はそれ以前にすでに高い. つまりOverfit後も学習を継続させると発生する現象)
+（下記はa○b = c（例：x+y=?）というタスクにおける性能調査）
+（量 が増えれば質が変わる）
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | Grokking中にはモデル内部で何がおこっているのか？
+ 
+“Towards Understanding Grokking: An Effective Theory of Representation Learning” [7]
+26
+類似研究：”Progress measures for grokking via mechanistic interpretability”, ICLR2023
+A. 記憶を汎化させている（上は学習過程の可視化）．
+過学習中（中央）は覚えているだけだが，汎化後（右）には数字が綺麗に整列．
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+目次 
+27
+• なぜモデルをスケールさせるのか？
+• スケール則（Scaling Law）がもたらすもの
+• それぞれの要素のスケールにおける問題点
+• スケールするための技術：パラメータ数(N)に関連する取り組み
+• スケールするための技術：計算量(C)に関連する取り組み
+• スケールするための技術：データ(D)に関連する取り組み
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+(再掲)スケール則（Scale Law)  
+“Scaling Laws for Neural Language Models” [3] 
+28
+DLにおけるスケール則とは？ 
+1.
+計算資源（C） 
+2.
+データセットサイズ（D） 
+3.
+パラメータ数（N） 
+と誤差（L）の間に成立する次の経験則． 
+ 
+ 
+ 
+ 
+※ 他2つの変数が十分大きい場合． 
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■初期のスケール則 (Baidu, 2017） 
+“Deep Learning Scaling is Predictable, Empirically” [8] 
+29
+同じ点 
+データに関するスケール則を
+検証（モデルも少し） 
+左はMTの例． 
+ 
+相違点 
+1.
+対象モデルが異なる 
+（Transformer以前） 
+2.
+規模が異なる 
+（特にモデル） 
+ 
+LSTM: RNN型言語モデルの一種
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■GPT-3でのスケール則 (OpenAI, 2020）
+ 
+“Language Models are Few-Shot Learners” [9] 
+30
+•
+Transformer
+•
+175B
+•
+先行研究(*)よりも２桁
+オーダー大きい計算
+量のスケール則を確
+認した.
+(*) “Scaling Laws for Neural Language Models”, 2020
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+PaLM2でのスケール則（Google, 2023） 
+“PaLM 2 Technical Report” [10] 
+31
+PaLM2でも同様の実験が行われており，Chinchilla同様のスケール則が確認． 
+*ただし転移性能は必ずしもこの設計に従わないことも報告されている． 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+ スケーリングによって享受できるメリット|効率性 
+“Scaling Laws for Neural Language Models” [3] 
+32
+パラメータ数が多いほど 
+サンプル効率は良い 
+小さなモデルだと学習途中からロスが下がりづらくなる -> あるロスを達
+成するのに小さなモデルで計算を継続するのは非効率 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+転移性能とスケールの関係 | 転移性能における元Modelの重要さ
+ 
+“Scaling Laws for Neural Language Models” [3] 
+33
+• WebText2：通常のテストデータ，それ以外：学習外の(分布外の)データ 
+• WebText2以外で性能の劣化は見られるもの，オフセットの違い程度で 
+傾向は同じ（傾きもほぼ同じ） 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+様々なドメインでのスケール則（計算量とLoss） 
+“Scaling Laws for Autoregressive Generative Modeling” [11] 
+34
+画像生成，マルチモーダル，動画，数理等でも計算量に関するスケール則が成立 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+様々なドメインでのスケール則（計算量とLoss） 
+“Scaling Laws for Autoregressive Generative Modeling” [11] 
+ 
+35
+ある計算量が与えられたときの最適なモデルサイズのドメイン間での比較 
+どのドメインも概ね同じような傾向にある 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+より精緻なモデル選択 
+べき乗則の意義 
+36
+モデル構造の探索 
+ハイパラ探索 
+スケールしてもおそらくTransoformer > 
+LSTM
+パラメータ小=> 層が少ないほうが良い 
+パラメータ大=> 層が多いほうが良い 
+Q. モデルAとモデルBはどちらが性能がよい？
+↓ Anthoropicの“Predictability and Surprise in Large Generative Models” [12]より抜粋
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+べき乗則がもたらすもの 
+37
+“GPT-4 Technical Report” [13] より抜粋
+X軸：GPT4を1.0とした計算量 
+Y軸：性能 
+⇒1/1000程度のモデルまでで性能
+を正確に予測できる． 
+ 
+※ GPT-4のパラメタ数は公開されていないがど
+んなに小さくても1010 (10B）より大． 
+左の図の最小が103だとしたら1013 (1T)
+“Scaling laws de-risk investments in large models”
+ 
+↓ Anthoropicの“Predictability and Surprise in Large Generative Models” [12]より抜粋
+Q. あるモデルを1Tまでスケールするべきか？
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+べき乗則がもたらすもの 
+38
+下流タスクの性能との関係性 
+Q. Loss(事前学習の交差エントロピー)が低い＝下流タスクの性能が高い？
+①綺麗に上がる
+②突然上がる
+(Emergent Ability)
+③上がらない
+④下がって上がる
+(Inverse scaling prize)
+・基本的にはYES. 
+・例外もままある(例：下図②～③) 
+　・タスクの種類や難易度による 
+“GPT-4 Technical Report”, 2023
+“Language Models are Few-Shot Learners”, 2020
+①～③：“Language Models are Few-Shot Learners”, [9], ④：“GPT-4 Technical Report” [13]
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+ここまでのまとめ – スケール則–  
+39
+• 近年のモデルのスケールを支えてきたスケール則について説明 
+• スケール則は以下の3つと性能(L)の間で成り立つ経験則 
+• 計算資源(C) 
+• データセットサイズ(D) 
+• パラメータ数(N) 
+• 様々なドメインで大規模なモデルを開発する利点が確認された． 
+• スケール則により，大規模なモデルへの投資リスクが軽減された． 
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+目次 
+40
+• なぜモデルをスケールさせるのか？
+• スケール則（Scaling Law）がもたらすもの
+• それぞれの要素のスケールにおける問題点
+• スケールするための技術：パラメータ数(N)に関連する取り組み
+• スケールするための技術：計算量(C)に関連する取り組み
+• スケールするための技術：データ(D)に関連する取り組み
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+スケールさせる上での課題 
+41
+計算量（C）
+十分な計算量/
+メモリ量を確保して
+効率よく訓練する必要
+パラメータ数（N）
+モデルがスケール
+するにつれて増加する
+コストを抑える必要
+データ（D）
+性能を発揮させるため
+の学習用データを用意
+する必要
+パラメータ, 計算量, データをスケールする事で,
+スケール則に従って性能が上がることはわかったが,
+スケールを実施する上で様々な課題がある, という話をこれからします.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+N，C：モデルサイズの増加につれて必要なコストが増加する
+ 
+“Mosaic LLMs (Part 1): Billion-Parameter GPT Training Made Easy” [14] より抜粋 
+42
+→効率的にパラメータの大きなモデルを訓練する方法が必要 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+N，C:Transfomerは系列長に対し必要な計算量/メモリが増加する
+ 
+“Attention is all you need” [15] 
+43
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 |なぜ系列長の2乗の計算量/メモリが必要なのか？
+ 
+“Understanding Attention Mechanism in Transformer Neural Networks” [16]より抜粋 
+44
+各単語が他のすべての単語との関連性を計算するため， 
+全単語の組み合わせに対して計算を行い，その値を記憶する必要がある． 
+Attention機構の詳
+しい解説は, Day3を
+参照.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+D：データの枯渇問題 | データはどこまで増やせるのか？
+ 
+“Will we run out of data? An analysis of the limits of scaling datasets in Machine Learning” [17] 
+45
+過去のWebデータの増え方，学習データの増え方からの予測 
+良質な言語データは2024年頃に枯渇することが予測されている． 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+目次 
+46
+• なぜモデルをスケールさせるのか？
+• スケール則（Scaling Law）がもたらすもの
+• それぞれの要素のスケールにおける問題点
+• スケールするための技術：パラメータ数(N)に関連する取り組み
+• スケールするための技術：計算量(C)に関連する取り組み
+• スケールするための技術：データ(D)に関連する取り組み
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Transformer 改善形一覧(2022年時点)  
+“Efficient Transformers: A Survey” [18] 
+47
+Efficient Attention
+混合エキスパート
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+パラメータ(N)に関連する取り組みの全体像 
+48
+モデルがスケール
+するにつれて
+コストが増加する
+Self-Attentionそのものの
+計算/メモリ効率を改善する
+課題
+方向性
+解決策
+Efficient Attention
+計算コストを肥大化させず
+モデルのパラメータを増やす
+混合エキスパート
+Self-Attentionに依存しない
+学習方法を実現する
+新しいアーキテクチャ
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+パラメータ(N)に関連する取り組み：Efficient Attention
+ 
+49
+モデルがスケール
+するにつれて
+コストが増加する
+Self-Attentionそのものの
+計算/メモリ効率を改善する
+課題
+方向性
+解決策
+Efficient Attention
+計算コストを肥大化させず
+モデルのパラメータを増やす
+混合エキスパート
+Self-Attentionに依存しない
+学習方法を実現する
+新しいアーキテクチャ
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Sparse Trasnformer：Sparse(疎)なAttentionの提案
+ 
+“Generating Long Sequences with Sparse Transformers” [19] 
+50
+・Attentionを計算する箇所を限定(計算しない箇所はマスク)することで計算量削減 
+・画像や音声のようなモダリティでもTransformerの利用が可能に.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Sparse Trasnformer：Sparse(疎)なAttentionの提案
+ 
+“Generating Long Sequences with Sparse Transformers” [19] 
+51
+以下のサイトから図を引用.
+https://zenn.dev/sunbluesome/articles/5f6a86dfa1e1be
+2回アテンション機構を通
+せば全てのトークンにアテ
+ンションが当たる.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Big Bird：Sparse(疎)なAttentionの提案
+ 
+“Big Bird: Transformers for Longer Sequences” [20] 
+52
+方法
+複数のSparseな
+Attentionを
+組み合わせて，
+Attentionを近似し，
+長い系列に対応する
+結果
+長い系列を扱う質問応
+答や要約などのタスクで
+SoTA
+類似アイディア：”Longformer: The Long-Document Transformer”, 2020
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Performer：低ランク近似によるAttentionの効率化
+ 
+“Generating Long Sequences with Sparse Transformers” [19] 
+53
+方法
+Attention行列の低ランク行列で
+あるランダム特徴行列に近似す
+ることにより、
+バイアスのないAttention近似を
+提案
+結果
+Attentionの高速化とメモリの削
+減に寄与することを確認
+タンパク質配列データの
+モデリング(系列長8192)での性
+能において、
+Transformerを上回る
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+FlashAttention：メモリアクセスを考慮し，更なる高速化を実現 
+“FlashAttention: Fast and Memory-Efﬁcient Exact Attention with IO-Awareness” [21]
+54
+従来のAttention近似ではメモリアクセスについてオーバーヘッドを無視する
+傾向にあったと指摘
+メモリアクセスのやり取りを削減しながら，高速な演算が可能なSRAMを効率的に利用
+することで，高速化(e.g.GPT-2において最大7.6倍)に成功
+行列計算と
+無関係
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+FlashAttention2： FlashAttentionをさらに高速化 
+“FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning” [22] 
+55
+方法 
+ワープ(同時に作業する 
+スレッドのグループ)を 
+Q毎に分割することで、 
+ワープ間の通信を削減し、
+並列性を向上 
+ 
+結果 
+Flash-Attentionのおよそ２
+倍の高速化に成功 
+(PyTorchの標準的な
+Attentionの最大9倍高速)
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+パラメータ(N)に関連する取り組み：混合エキスパート
+ 
+56
+モデルがスケール
+するにつれて
+コストが増加する
+Self-Attentionそのものの
+計算/メモリ効率を改善する
+課題
+方向性
+解決策
+Efficient Attention
+計算コストを肥大化させず
+モデルのパラメータを増やす
+混合エキスパート
+Self-Attentionに依存しない
+学習方法を実現する
+新しいアーキテクチャ
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+計算コストを肥大化させずモデルのパラメータを増やす？
+ 
+57
+用意する
+パラメータ数
+必要な計算量
+用意する
+パラメータ数
+必要な計算量
+用意する
+パラメータ数
+必要な計算量
+通常
+やりたい事
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+混合エキスパート(MoE)  
+58
+エキスパートA
+（というネットワーク）
+エキスパートB
+（というネットワーク）
+エキスパートC
+（というネットワーク）
+入力
+出力
+複数個のエキスパート(ニューラルネットワーク)を用意しておき, 入力の値に応じて, 一部のエキスパートだけに
+フォワードする. → すべてのパラメータを使う事にはならないので, 計算量を抑えられる.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+混合エキスパート(MoE)  
+59
+エキスパートA
+（というネットワーク）
+エキスパートB
+（というネットワーク）
+エキスパートC
+（というネットワーク）
+入力
+出力
+＊厳密にいうと, どのエキスパートに振り分けるかを決
+めるための小さなネットワーク（ルーターネットワーク）
+が追加で必要となるため, その分 若干計算量は増え
+る.
+複数個のエキスパート(ニューラルネットワーク)を用意しておき, 入力の値に応じて, 一部のエキスパートだけに
+フォワードする. → すべてのパラメータを使う事にはならないので, 計算量を抑えられる.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+混合エキスパート(MoE)  
+60
+・計算量を抑えつつ, パフォーマンスを改善できる事が実験で確認されている.
+　・同じ計算量で学習するという制約下で, MoEを使ったモデルのほうが
+　　使わなかったモデル(通常のモデル)よりもパフォーマンスが高い.
+・リーク情報によると, GPT-4はMoEモデル構造を採用しているらしい.
+・なぜこのやり方で上手くいくのか.
+“Towards Understanding Mixture of 
+Experts in Deep Learning” [23]
+ルーターネットワークがデータのクラ
+スター中心点を基準に各エキスパー
+トに対してデータを振り分け、各エキ
+スパートはそのクラスター内での分
+類に特化する.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+混合エキスパート(MoE)層の導入によるモデルのスケーリング
+ 
+“Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer” [24] 
+61
+方法
+莫大な数のエキスパートネットワークと
+，
+その組み合わせを制御するゲーティン
+グ
+ネットワークを含む混合エキスパート層
+の導入により，計算コストを比例して増
+加
+させずに，モデルのスケーリングを実
+現
+LSTM層の間に混合エキスパート層を
+適用することで，LSTMベースのモデ
+ルを127Bに拡張している
+結果
+※ LSTM: RNN型言語モデルの一種.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Switch Transformer：１兆6000億パラメータのMoEモデル
+ 
+“Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity”
+ [25] 
+62
+方法
+T5モデルをベースに, フィードフォワー
+ド層にMoEを利用して，大規模化
+エキスパートネットワークへのルーティ
+ングを単純化することで，通信コストの
+削減，
+サンプル効率の改善を可能に
+結果
+1.6兆パラメータのモデルの学習で
+T5-XXLモデルに対して4倍のスピード
+アップ
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+DeepSpeed-MoE: MoEモデルの学習効率の改善
+ 
+“DeepSpeed-MoE: Advancing Mixture-of-Experts Inference and Training to Power Next-Generation AI Scale”
+ [26] 
+63
+DeepSpeed MoEという学習システム
+により，自己回帰モデルでの品質が
+同等のDenseモデルと比較して5倍程
+度学習コストを削減したMoEの学習を
+実現
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+PR-MoE：MoEモデルの性能を維持したモデルサイズの削減
+ 
+“DeepSpeed-MoE: Advancing Mixture-of-Experts Inference and Training to Power Next-Generation AI Scale”
+ [26] 
+64
+方法
+(i)各トークンが1つの固定MLPモジュー
+ルと1つの選択されたエキスパートを
+別々に通過し，(ii)モデルの後半の層に
+おいて
+多くのエキスパートを活用する
+PR-MoE
+というアーキテクチャを提案
+結果
+(1)350Mの場合，PR-MoEは
+Standard-MoEの1/3以下のパラメータ
+しか使用せず，(2) 1.3Bの場合，
+PR-MoEはStandard-MoEの約60%の
+パラメータしか使用せずに，
+同等の精度を達成
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | MoEを含む言語モデルにおけるスケール則 
+“Unified Scaling Laws for Routed Language Models” [27] 
+65
+(左図) MoEモデルを通常のモデルにパラメータ換算すると, スケール則が成立.
+(右図) エキスパート数を増やすとLossが下がる.
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | MoEを含む言語モデルにおけるスケール則 
+“Unified Scaling Laws for Routed Language Models” [27] 
+66
+Base Modelが100Bくらいになった頃から 
+MoEの効果は薄くなる 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+パラメータ(N)に関連する取り組み：新しいアーキテクチャ
+ 
+よりメモリ，演算効率の優れたアーキテクチャ 
+67
+モデルがスケール
+するにつれて
+コストが増加する
+Self-Attentionそのものの
+計算/メモリ効率を改善する
+課題
+方向性
+解決策
+Efficient Attention
+計算コストを肥大化させず
+モデルのパラメータを増やす
+混合エキスパート
+Self-Attentionに依存しない
+学習方法を実現する
+新しいアーキテクチャ
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Attention Free Transformer (AFT)：Attentionを除いたTransformer 
+ 
+“An Attention Free Transformer” [28] 
+68
+ 
+式変形するとAttentionのような表現になる. 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+RWKV：RNNとTransformerの利点の組み合わせ
+ 
+“RWKV: Reinventing RNNs for the Transformer Era” [29] 
+69
+方法
+従来のAttentionでのキー, バ
+リューに相当するK,Vと過去の
+情報の受容度を示すRの3つと
+チャンネルごとの
+時間減衰ベクトルWの要素を
+用いたアーキテクチャ.
+式(14)は, 前頁のAFTに類似.
+Transformerのように並列で学
+習可能*という利点を活かしな
+がら，RNNのように再帰的に低
+コストな推論が可能
+Time Mixing
+Channel Mixing
+*あくまで再帰的な表現なので，長い系列の入力などにおいての並列性には課題
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+RetNet：Transformerを超えるスケーリングカーブを実現
+ 
+“Retentive Network: A Successor to Transformer for Large Language Models” [30] 
+70
+方法
+RWKVと同様に，並列に学習し，再帰的な
+推論が可能なネットワーク
+再帰的表現の遷移行列を対角化し，
+学習の並列性を実現. 過去のトークンを
+チャンクに分割して, チャンクを再帰的に要
+約しながら，それぞれのチャンクを並列に
+符号化(encode)することで，長距離依存を
+獲得.
+結果
+推論コストを大幅に削減した上，
+スケーリングカーブにおいてTransformer
+を上回る
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+S4：状態空間モデルに基づき，長距離依存を捉えるアーキテクチャ
+ 
+“Efficiently Modeling Long Sequences with Structured State Spaces” [31] 
+71
+方法
+入力信号uを潜在状態xを介して出力y
+にマッピングする状態空間モデルに基
+づいたアーキテクチャを定式化. 状態
+空間モデル × Deep Learningのアプ
+ローチ.
+結果
+長距離依存性を捉える必要のある画
+像と言語のモデリングタスクなどで
+既存手法を凌駕
+関連研究
+H3(ICLR2023)：言語領域での状態空
+間モデルの改良
+Hyena(ICML2023)：H3+長い畳み込
+みでAttentionを代替
+(解説スライド) 
+https://www.slideshare.net/DeepLearningJP2016/dlefficiently-modeling-long-sequen
+ces-with-structured-state-spaces
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+余談：新しいアーキテクチャはTransformerにとってかわるか？
+ 
+72
+・RWKV, RetNet, S4, …
+・検証されたモデルサイズは1B～10B程度のオーダー
+・100Bのオーダーサイズでの検証は未
+　・どのサイズまでスケール則が成り立つか
+　・Transformerとの性能比較
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+目次 
+73
+• なぜモデルをスケールさせるのか？
+• スケール則（Scaling Law）がもたらすもの
+• それぞれの要素のスケールにおける問題点
+• スケールするための技術：パラメータ数(N)に関連する取り組み
+• スケールするための技術：計算量(C)に関連する取り組み
+• スケールするための技術：データ(D)に関連する取り組み
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+計算量(C)に関連する取り組みの全体像 
+74
+十分な計算量/
+メモリ量を確保し効
+率よく
+訓練する必要
+(主に推論時)モデルの軽量化
+を通じて、小規模なGPU環境で
+の運用を可能にする
+訓練において複数のGPUを
+効率的に活用する
+課題
+方向性
+解決策
+量子化
+並列計算
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+計算量(C)に関連する取り組み：並列計算 
+75
+十分な計算量/
+メモリ量を確保し効
+率よく
+訓練する必要
+(主に推論時)モデルの軽量化
+を通じて、小規模なGPU環境で
+の運用を可能にする
+訓練において複数のGPUを
+効率的に活用する
+課題
+方向性
+解決策
+量子化
+並列計算
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+深層学習における並列化 
+“DeepSpeed: 深層学習の訓練と推論を劇的に 高速化するフレームワーク” [32]より抜粋， 
+76
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+ZeRO：データ並列時のメモリ効率化 
+“DeepSpeed: 深層学習の訓練と推論を劇的に 高速化するフレームワーク” [32]より抜粋， 
+77
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+ZeRO：データ並列時のメモリ効率化 
+“ZeRO: Memory Optimizations Toward Training Trillion Parameter Models” [32] 
+78
+Stage 1 
+Stage 2 
+Stage 3 
+• どの要素をメモリで並列するかに応じて，3段階の動作モードが存在
+• 段階が進めほどメモリを削減できるが，通信オーバーヘッドが増加する
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+3D Parallelism  
+“DeepSpeed: 深層学習の訓練と推論を劇的に 高速化するフレームワーク” [32]より抜粋， 
+79
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | 環境設定後にconfigで設定を渡すことで実行可能
+ 
+＊代表的なライブラリ：deepspeed 
+80
+https://github.com/microsoft/DeepSpeed [34]
+https://www.deepspeed.ai/docs/config-json/ [35]
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+計算量(C)に関連する取り組み：量子化 
+81
+十分な計算量/
+メモリ量を確保し効
+率よく
+訓練する必要
+(主に推論時)モデルの軽量化
+を通じて、小規模なGPU環境で
+の運用を可能にする
+訓練において複数のGPUを
+効率的に活用する
+課題
+方向性
+解決策
+量子化
+並列計算
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+量子化とは 
+82
+https://huggingface.co/blog/hf-bitsandbytes-integration#introduction-to-model-quantization [36]
+・モデルパラメータのデータタイプを, 
+　浮動小数点(Float型)から整数(Int型)に変換して演算処理を行う
+・推論時に, 必要メモリ量が削減できる.
+・ナイーブにこれを行うと性能劣化が発生する.
+量子化
+（小数点以下は切り捨てる
+ため誤差が発生する）
+元に戻す
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+LLM.int8()：性能劣化なしに可能な量子化方法
+ 
+“LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale” [37] 
+83
+方法
+16ビットの行列乗算で異常値の特徴を
+分離する混合精度分解を行い，
+大部分の値を8ビットで，
+外れ値のみを16ビットで表現する
+結果
+16ビットと比較して約50%のメモリ削減
+が可能な場合を示す
+175Bまでのパラメータを持つLLMに
+おいて，性能劣化なしに推論を行うこと
+が可能であることを経験的に示す
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+LLM.int8()：性能劣化なしに可能な量子化方法
+ 
+“LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale” [37] 
+84
+https://huggingface.co/blog/hf-bitsandbytes-integration#a-gentle-summary-
+of-llmint8-zero-degradation-matrix-multiplication-for-large-language-models
+Step1. 入力された隠れ状態から, 列単位
+で外れ値（ある閾値より大きい値）を抽出
+する。
+Step2. 外れ値の行列については, FP16の
+まま行列演算を実施. 外れ値ではない行
+列については, INT8に変換して（量子化
+して）行列演算を実施。
+Step3. ２つの出力値が存在する。INT8
+の出力値はFP16に戻して、２つの出力値
+を加算して, FP16として出力値をリターン
+する.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | 量子化によりEmergent Abilityは失われないか
+ 
+“Do Emergent Abilities Exist in Quantized Large Language Models:An Empirical Study” [38] 
+85
+・Emergent AbilityはLLMの重要な特性
+・in-context learning, chain-of-thought reasoning, instruction-followingの能力を計測
+・結果として4ビットまでの量子化モデルではEmergent Abilityの維持を確認
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+目次 
+86
+• なぜモデルをスケールさせるのか？
+• スケール則（Scaling Law）がもたらすもの
+• それぞれの要素のスケールにおける問題点
+• スケールするための技術：パラメータ数(N)に関連する取り組み
+• スケールするための技術：計算量(C)に関連する取り組み
+• スケールするための技術：データ(D)に関連する取り組み
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+データセット(D)に関連する取り組みの全体像 
+87
+性能を発揮させるた
+めの学習用
+データを用意する必
+要
+課題
+方向性
+解決策
+少量の高品質な
+データセットを用意する
+性能を発揮するための
+データセットを探索する
+データ刈り込みなど
+データセット整備
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+データセット(D)に関連する取り組み：データセット整備
+ 
+88
+性能を発揮させるた
+めの学習用
+データを用意する必
+要
+課題
+方向性
+解決策
+少量の高品質な
+データセットを用意する
+性能を発揮するための
+データセットを探索する
+データ刈り込みなど
+データセット整備
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+どのような学習データで学習するべきか 
+“A Survey of Large Language Models” [2] 
+89
+■ 主要なモデルの学習データの構成
+• 最近のモデルは多くのケースでCodeでの学習を行っている．GPT-3はなし． 
+• Codeで学習したモデル（例：code-davinci-002）はGPT-3より推論性能が良い． 
+• ChatGPTもcode-davinci-002をベースに学習されているとされる． 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+RefineWeb: データの前処理(フィルタリング)の工夫
+ 
+“The RefinedWeb Dataset for Falcon LLM” [39] 
+90
+Webデータのみでの5T Tokenのデータセット．600GがPublic． 
+フィルタリングの工夫(後述)などにより以前より大規模なデータを構築． 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Macrodata Refinement：データの厳密な絞り込みパイプライン
+ 
+“The RefinedWeb Dataset for Falcon LLM” [39] 
+91
+・複数のフィルタリング、重複削除を組み合わせた厳密なデータの絞り込みを実施 
+・一連のパイプラインでCommonCrawl中の約90%の文書が取り除かれる 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Macrodata Refinement：データの厳密な絞り込みパイプライン
+ 
+“The RefinedWeb Dataset for Falcon LLM” [39] 
+92
+●URL filtering: 有害なURLから取得したテキストを排除
+●Text extraction: テキストのメインコンテンツテキストのみ抽出（ヘッダーや広告部分
+は要らない）
+●Language identification: 特定の言語テキストのみ残す
+●Repetition removal: テキスト内の繰り返し文を排除
+●Document-wise filtering: スパムテキストをフィルタ
+●Line-wise corrections: テキスト内の行レベルのフィルタ（例 SNSの「いいね 3」）
+●Fuzzy deduplication: 異なるドキュメントに類似文章が存在した場合は排除 
+(MinHash [40])
+●Exact deduplication:異なるドキュメントに指定したトークン数以上の完全一致が存在
+した場合は排除
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+特定ドメインのデータでの継続的な事前学習 
+“Continual Pre-Training Mitigates Forgetting in Language and Vision” [41] 
+93
+事前学習後に特定ドメインの文書(e.g. arXivの論文要旨)を継続的に学習させる. 
+継続学習したモデルの下流タスクでの性能を評価 
+事前学習の後に継続学習することで、破滅的忘却が起きにくい上、 
+下流タスクでの優れた性能を発揮できることを示す 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Chinchilla：最適計算配分に基づきNとDを決めたモデル
+ 
+“Training Compute-Optimal Large Language Models” [42] 
+94
+• 最適計算を行うためには, パラメータを増やすと, 学習データ量
+も増やさないといけないことを定量的に示した.
+• 以前のモデル（Gopherなど）は、パラメータは大きいが学習
+データ量が少なすぎた.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Chinchilla：最適計算配分に基づきNとDを決めたモデル
+ 
+“Training Compute-Optimal Large Language Models” [42] 
+95
+データサイズD
+トークンを1.4Tまで増加 
+（同じデータの別サブセット） 
+※ Gopherの約4.6倍 
+ 
+モデルサイズN
+70Bに設定 
+※ Gopherの約1/4倍 
+ 
+結果 
+多くのケースでGopherに勝利 
+（発見した関係式の妥当性を示唆） 
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+◼補足|Chinchillaは本当に最適な配分なのか？
+ 
+“Go smol or go home, Why we should train smaller LLMs on more tokens” [43]より抜粋 
+96
+• Chinchilla Trap: 
+Chinchillaのモデルサイズ(70B)は 
+大きいため, 推論コストが高い*. 
+推論コストも考慮してより 
+小さなモデルを長時間 
+訓練するべきではという意見 
+ 
+• 最適モデルサイズの40-60%以内のモデ
+ルサイズを選択して， 
+10-42%の計算量の追加で同性能のモデ
+ルを学習できるという指摘 
+*Chinchilla論文内でも，より小さなモデルで訓練した場合のlossの分布に関し言及されている
+同じパフォーマンスを達成するために
+必要なパラメータサイズ（横軸）と計算
+量（縦軸）の関係
+最適モデルサイズ
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+データセット(D)に関連する取り組み：データ刈り込みなど
+ 
+97
+性能を発揮させるた
+めの学習用
+データを用意する必
+要
+課題
+方向性
+解決策
+少量の高品質な
+データセットを用意する
+性能を発揮するための
+データセットを探索する
+データ刈り込みなど
+データセット整備
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+データの質の重要性：データ刈り込み(Data Pruning)
+ 
+“Beyond neural scaling laws:beating power law scaling via data pruning” [44] 
+98
+■ 一般的な学習におけるデータ刈り込み
+■ 転移学習におけるデータ刈り込み
+• データセットにおいて，学習に
+とって
+重要でないサンプルを取り除く，
+データ刈り込みについて検証
+• データ刈り込みにより，スケール
+則を打ち破り，より効率的な学習
+が可能なことを確認
+• 転移学習においては，データ
+刈り込みを行うことで，全データ
+で事前学習/事後学習を行う場合
+よりも最終的な精度が向上する
+場合も存在.
+自然言語ではなく
+画像の事例
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+データの質の重要性：データ刈り込み(Data Pruning)
+ 
+“Beyond neural scaling laws:beating power law scaling via data pruning” [44] 
+99
+・学習データが少ない場合：分類の難易度が低い(=簡単な)サンプルを多く残す.
+・学習データが多い場合：分類が難易度が高い(=難しい)サンプルを多く残す.
+・現実的なデータの刈り込み方法の提案：
+　　データを自己教師あり学習済みの埋め込み(embedding)モデルに通して, 
+　　潜在空間上でk-means法によってクラスタリングを行い,
+　　クラスタの中心点からの(コサイン)距離でサンプルの難易度を決定する.
+　　距離が近いほうが難易度が低い. 距離が遠いほうが難易度が高い.
+自然言語ではなく
+画像の事例
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+データの質の重要性： D4  
+(Document De-Duplication and Diversification)
+ 
+“D4: Improving LLM Pretraining via Document De-Duplication and Diversification” [45] 
+100
+• D4:事前学習済みの埋め込みを
+介して作成したクラスター内で
+データを選択することで、
+多様なデータを獲得する
+データ刈り込み手法
+• 6.7Bモデル規模において、学習
+を高速化し（20%の効率向上）、
+16のNLP下流タスクの精度を平
+均2%向上させることができる
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+データの質の重要性：Instruction Tuning
+ 
+“LIMA: Less Is More for Alignment” [46] 
+101
+■ 主要モデルとLIMAの生成結果の評価
+• LIMAはRLHFを行わず，入念
+に選定した1000件のサンプル
+のみでLlama 65Bに対し
+，Instruction Tuningを行う
+• LIMAの出力はRLHFを行って
+いるBardを58%，GPT-4にも
+43%で同等かそれ以上と評価
+• Instruction Tuningにおける
+サンプルの質の重要性を示唆
+事前学習ではなく
+ファインチューニングの
+学習データに関する事例
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+本日のまとめ 
+102
+モデルのスケールを支える技術動向について紹介しました． 
+1. なぜモデルをスケールさせるのか
+1) スケール則の成立, 2) Emergent Ability
+3. モデルをスケールする上での問題は依然として存在
+• スケールにつれて必要となるコストの増加，データの不足，etc..
+2. スケール則はモデルの性能と{パラメータ数, データ量, 計算量}の関係を明らかに
+した
+• スケール則で性能の予測ができるようになり, 大規模なモデルへの投資リスクが
+軽減.
+4. モデルのスケールを支える様々な研究・開発が行われている
+• パラメータ数(P)：よりメモリ効率，演算効率の優れたモデルの提案
+• 計算量(C)：効率的な学習、推論方法の整備
+• データセットサイズ(D)：データの量と質の工夫
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+補足資料
+103
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | 用語説明　計算量 
+104 
+・計算能力を表す単位：FLOPS  
+　・ FLoating point number Operations Per Second 
+　・1秒間に浮動小数点演算が何回できるかという能力 
+　・モデルのパラメータ値は浮動小数点（例: FP32, FP16）で表される 
+　・浮動小数点演算の例： 
+　　・パラメータの足し算 
+　　・パラメータの掛け算 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | 用語説明　計算量 
+105 
+・LLM学習に必要な計算量＝浮動小数点演算の総回数 (Decoder-Onlyの場合の近似式)： 
+　　モデルサイズ(パラメータ数) × 学習データサイズ(トークン数) × ６ 
+　　（例）GPT3の場合 
+　　　　　175B × 0.3T × 6 ≒ 3.14 * E+23 FLOP 
+・計算環境の計算能力： 
+　　GPU V100 ×1基： O(E+13~E+14 FLOPS) *実際にはUtility Rateをかける. 
+　　GPU A100 ×1基： O(E+14 FLOPS) *実際にはUtility Rateをかける. 
+・学習にかかる日数： 
+　　 LLM学習に必要な総計算量／計算環境の計算能力 
+　　（例）GPT3を, GPU A100 ×1000基で学習する場合 
+“Language Models are Few-Shot Learners” [9]
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | 用語説明　計算量 
+106 
+・なぜ６をかけるのか？ 
+　・１パラメータあたりのMLP層における行列演算数が６回だから. 
+https://medium.com/@dzmitrybahdanau/the-flops-calculus-of-language-model-training-3b19c1f025e4 [47]
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+■補足 | 用語説明　計算量 
+107 
+・Attention機構の計算量は考慮しなくていいのか？ 
+　・系列長が短い場合,  
+　　　MLPの計算量 >> Attention機構の計算量（詳細は上記URLを参照） 
+　・最近は系列長が長くなる傾向にあるので, 無視できなくなってきている可能性が高い. 
+　　・GPT-3：2,049トークン(*) 
+　　・ChatGPT：16,385トークン(*) 
+　　・GPT-4：32,768トークン(*) 
+https://medium.com/@dzmitrybahdanau/the-flops-calculus-of-language-model-training-3b19c1f025e4 [47]
+(*) 
+https://platform.openai.com/docs/model
+s/overview, 2023-09-14 アクセス.
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Reference  
+大規模言語モデル Day4 
+ 
+108
+[1] Bao Hua Choo, The emergence of Large Language Models (LLMs), The low down, 
+https://thelowdown.momentum.asia/the-emergence-of-large-language-models-llms/,アクセス日：2023/11/16 
+ 
+[2] Zhao+. A Survey of Large Language Models. 2023.  In arXiv:2303.18223v12  
+ 
+[3] Kaplan+. Scaling Laws for Neural Language Models. 2020. In arXiv:2001.08361 
+ 
+[4] Wei+. Emergent Abilities of Large Language Models. 2022. In arXiv:2206.07682v2 
+ 
+[5] Schaeﬀer+. Are Emergent Abilities of Large Language Models a Mirage?. 2023. In arXiv:2304.15004v2 
+ 
+[6] Power+. Grokking: Generalization Beyond Overﬁtting on Small Algorithmic Datasets. 2022. In arXiv:2201.02177v1 
+ 
+[7] Liu+. Towards Understanding Grokking: An Eﬀective Theory of Representation Learning. 2022. In NeurIPS2022 
+ 
+[8] Hestness+. Deep Learning Scaling is Predictable, Empirically. 2017. In arXiv:1712.00409v1  
+ 
+[9] Brown+. Language Models are Few-Shot Learners. 2020. In NeurIPS2020 
+ 
+[10] Anil+. PaLM 2 Technical Report. 2023. In arXiv:2305.10403v3  
+ 
+ 
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Reference  
+大規模言語モデル Day4 
+ 
+109
+[11] Henighan+. Scaling Laws for Autoregressive Generative Modeling. 2020. In arXiv:2010.14701v2 
+ 
+[12] Ganguli+. Predictability and Surprise in Large Generative Models. 2023. In arXiv:2202.07785.v2  
+ 
+[13] OpenAI. GPT-4 Technical Report.2023. In arXiv:2303.08774v3  
+ 
+[14] Abhinav Venigalla, Linden Li, Billion-Parameter GPT Training Made Easy, MosaicML, 
+https://www.mosaicml.com/blog/billion-parameter-gpt-training-made-easy,アクセス日：2023/11/16 
+ 
+[15] Vaswani+. Attention Is All You Need. 2017. In NeurIPS2017 
+ 
+[16] Jaiyam Sharma, Understanding Attention Mechanism in Transformer Neural Networks, LearnOpenCV, 
+https://learnopencv.com/attention-mechanism-in-transformer-neural-networks/, 
+アクセス日：2023/11/16 
+ 
+[17] Villalobos+. Will we run out of data? An analysis of the limits of scaling datasets in Machine Learning. 2022. In  arXiv:2211.04325v1 
+ 
+[18] Tay+. Eﬃcient Transformers: A Survey. 2020. In arXiv:2009.06732v3 
+ 
+[19] Child+. Generating Long Sequences with Sparse Transformers. 2019. In arXiv:1904.10509v1 
+ 
+[20] Zahher+. Big Bird: Transformers for Longer Sequences. 2020. In NeurIPS2020 
+ 
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Reference  
+大規模言語モデル Day4 
+ 
+110
+[21] Dao+. FlashAttention: Fast and Memory-Eﬃcient Exact Attention with IO-Awareness. 2022. In NeurIPS2022  
+ 
+[22] Tri Dao. FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning. 2023. In arXiv:2307.08691v1 
+ 
+[23] Chen+. Towards Understanding Mixture of Experts in Deep Learning. 2022. In NeurIPS2022 
+ 
+[24] Shazeer+. Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer. 2017. In ICLR  
+ 
+[25] Fedus+. Switch Transformers: Scaling to Trillion Parameter Models with Simple and Eﬃcient Sparsity. 2021. arXiv:2101.03961v3 
+  
+[26] Rajbhandari+. DeepSpeed-MoE: Advancing Mixture-of-Experts Inference and Training to Power Next-Generation AI Scale. 2022. In ICML2022 
+Proceedings of the 39th International Conference on Machine Learning, PMLR 162:18332-18346 
+ 
+[27] Clark+. Uniﬁed Scaling Laws for Routed Language Models. 2022. In arXiv:2202.01169v2 
+ 
+[28] Zhai+. An Attention Free Transformer. 2021. In arXiv:2105.14103v2  
+ 
+[29] Peng+. RWKV: Reinventing RNNs for the Transform. 2023. In  arXiv:2305.13048v1 
+ 
+[30] Sun+. Retentive Network: A Successor to Transformer for Large Language Models. 2023. In arXiv:2307.08621v4 
+ 
+ 
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Reference  
+大規模言語モデル Day4 
+ 
+111
+[31] Gu+. Eﬃciently Modeling Long Sequences with Structured State Spaces. 2022. In ICLR2022 
+ 
+[32] Microsoft DeepSpeed Team, DeepSpeed: 深層学習の訓練と推論を劇的に 高速化するフレームワーク, Microsoft, 
+https://www.deepspeed.ai/assets/ﬁles/DeepSpeed_Overview_Japanese_2023Jun7th.pdf,アクセス日：2023/11/16 
+ 
+[33] Rajbhandari+. ZeRO: Memory Optimizations Toward Training Trillion Parameter Models. 2019. In  arXiv:1910.02054v3 
+ 
+[34] Microsoft, https://github.com/microsoft/DeepSpeed,アクセス日：2023/11/16 
+ 
+[35] DeepSpeed, https://www.deepspeed.ai/docs/conﬁg-json/ ,アクセス日：2023/11/16 
+ 
+[36] Younes Belkada, Tim Dettmers, A Gentle Introduction to 8-bit Matrix Multiplication for transformers at scale using Hugging Face Transformers, 
+Accelerate and bitsandbytes, Hugging Face, 
+ 
+https://huggingface.co/blog/hf-bitsandbytes-integration#a-gentle-introduction-to-8-bit-matrix-multiplication-for-transformers-at-scale-using-hugging-
+face-transformers-accelerate-and-bitsandbytes, アクセス日：2023/11/16 
+ 
+[37] Dettmers+. LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale. 2022. In NeurIPS2022 
+ 
+[38] Liu+. Do Emergent Abilities Exist in Quantized Large Language Models: An Empirical Study. 2023.In arXiv:2307.08072v2 
+ 
+ 
+[39] Penedo+. The ReﬁnedWeb Dataset for Falcon LLM: Outperforming Curated Corpora with Web Data, and Web Data Only. 2023. In 
+arXiv:2306.01116v1 
+ 
+[40] Daisuke Okanohara,  MinHashによる高速な類似検索, Preferred Networks Research&Development, 2011, https://tech.preferred.jp/ja/blog/minhash/, 
+アクセス日: 2023/11/16 
+ 
+ 
+LLM 大規模言語モデル講座 講義資料  © 2023 by  東京大学松尾研究室 is licensed under CC BY-NC-ND 4.0 
+Reference  
+大規模言語モデル Day4 
+ 
+112
+[41] Cossu+. Continual Pre-Training Mitigates Forgetting in Language and Vision. 2022. In arXiv:2005.09357.v1  
+ 
+[42] Hoﬀmann+. Training Compute-Optimal Large Language Models. 2022. In NeurIPS2022 
+ 
+[43] Harm de Vries, Go smol or go home, Why we should train smaller LLMs on more tokens, 2023, 
+https://www.harmdevries.com/post/model-size-vs-compute-overhead/,アクセス日: 2023/11/16 
+ 
+[44] Sorscher+. Beyond neural scaling laws:beating power law scaling via data pruning,2022, In NeurIPS2022 
+ 
+[45] Tirumala+. D4: Improving LLM Pretraining via Document De-Duplication and Diversiﬁcation. 2023. In arXiv:2308.12284v1  
+ 
+[46] Zhou+. LIMA: Less Is More for Alignment. 2023. In arXiv:2305.11206v1 
+ 
+[47] Dzmitry Bahdanau, The FLOPs Calculus of Language Model Training, Medium, 2022, 
+https://medium.com/@dzmitrybahdanau/the-ﬂops-calculus-of-language-model-training-3b19c1f025e4,アクセス日: 2023/11/16 
+ 

@@ -1,9 +1,16 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, File, Form, UploadFile
 from models import QAItemModel, QAInfoModel, QAResultModel, Submission
 from db import qa_item_table, qa_info_table, qa_result_table
+from src.SourceData import SourceData
 from collections import defaultdict, Counter
 from boto3.dynamodb.conditions import Key
 from routers.qa_result import normalize
+import csv
+import io
+from typing import List, Dict, Optional
+import os
+from src.ask_llm_by_chunks import ask_llm_by_chunks
+from src.db_save import db_save_to_QAinfo, db_save_to_QAitem
 
 
 router = APIRouter()
@@ -184,3 +191,50 @@ def get_qa_detail(id: str):
         "score_distribution": dict(score_distribution),
         "per_quiz_analysis": quiz_data
     }
+
+
+
+@router.post("/upload_csv/")
+async def upload_pdf(    
+    file: Optional[UploadFile] = File(None),  # ← ファイルを任意に
+    questionCount: int = Form(...),
+    mode: str = Form(...),
+    difficulty: str = Form(...),
+    id: str = Form(...),
+):
+    response = qa_info_table.get_item(Key={'id': id})
+    item = response.get('Item')
+    if not item:
+        raise HTTPException(status_code=404, detail="QAInfo not found")
+
+    s_data = SourceData(None, questionCount, mode, difficulty, item.get("title"), className=item.get("className"))
+    s_data.texts = item.get("originText")
+    chunk_text = s_data.text2chunk()
+    
+    if file:
+        filename = file.filename
+        contents = await file.read()
+        s_data.row_file = contents
+
+        _, ext = os.path.splitext(filename)
+        ext = ext.lower()
+        if ext != ".csv":
+            raise HTTPException(status_code=400, detail="対応していないファイル形式です")
+        
+        # CSV を辞書として読み込む
+        try:
+            text_stream = io.StringIO(contents.decode("utf-8"))
+            reader = csv.DictReader(text_stream)
+            csv_data: List[Dict[str, str]] = list(reader)
+            s_data.user_qa = csv_data
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"CSVの読み込みに失敗しました: {str(e)}")
+    else:
+        print("ファイルはアップロードされていません。")
+
+    result_question = ask_llm_by_chunks(s_data)
+    id = db_save_to_QAinfo(s_data, id=id)
+    id = db_save_to_QAitem(id, result_question)
+
+    # ここに通常の処理を追加可能（s_data作成など）
+    return {"message": "アップロード処理完了（CSVは" + ("あり" if file else "なし") + "）"}

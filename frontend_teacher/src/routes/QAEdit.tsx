@@ -18,11 +18,15 @@ interface QAInfo {
     mode: string;
 }
 
+const qaURL = "http://127.0.0.1:8000/upload_csv/"
+
 const QAEdit: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [qaItems, setQaItems] = useState<QAItem[]>([]);
     const [qaInfo, setQaInfo] = useState<QAInfo | null>(null);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
 
     useEffect(() => {
         if (id) {
@@ -106,6 +110,77 @@ const QAEdit: React.FC = () => {
             .then(() => navigate("/qa"))
             .catch(err => console.error("削除失敗:", err));
     };
+
+
+
+
+
+
+
+
+
+    const [file, setFile] = useState<File | null>(null);
+    const [questionCount, setQuestionCount] = useState<number>(5);
+    const [mode, setMode] = useState<string>("");
+    const [difficulty, setDifficulty] = useState<string>("易");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setFile(e.target.files[0]);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setFile(e.dataTransfer.files[0]);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+    };
+
+    const handleSubmit = async () => {
+        if (!file || !mode) {
+            alert("ファイルとモードを選択してください");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("questionCount", String(questionCount));
+        formData.append("mode", mode);
+        formData.append("difficulty", difficulty);
+        formData.append("id", id ?? "");
+
+        try {
+            setIsLoading(true); // ローディング開始
+            const response = await fetch(qaURL, {
+                method: "POST",
+                body: formData,
+            });
+            setIsLoading(false); // ローディング終了
+            if (response.ok) {
+                alert("アップロード成功！");
+                const data = await response.json(); // ← レスポンスをJSONとして読み込む
+                navigate(`/qa/${id}`);
+            } else {
+                alert("アップロード失敗");
+                navigate(`/qa/${id}/edit`); // ← ここで画面遷移
+            }
+        } catch (error) {
+            console.error("送信エラー:", error);
+            setIsLoading(false);
+            alert("送信エラー");
+        }
+    };
+
+
+
+
+
 
     const isValidAnswers = (): boolean => {
         if (!qaInfo?.title.trim()) return false;
@@ -231,9 +306,9 @@ const QAEdit: React.FC = () => {
                         ) : (
                             <input
                                 className={`qaedit-input ${qaInfo?.mode !== "記述式問題" &&
-                                        !item.options.includes(item.answer[0]?.trim?.())
-                                        ? "invalid-answer"
-                                        : ""
+                                    !item.options.includes(item.answer[0]?.trim?.())
+                                    ? "invalid-answer"
+                                    : ""
                                     }`}
                                 value={item.answer[0] || ""}
                                 onChange={(e) => handleAnswerChange(index, 0, e.target.value)}
@@ -249,6 +324,103 @@ const QAEdit: React.FC = () => {
                     </li>
                 ))}
             </ul>
+
+            {/* 高度な設定トグル */}
+            <div className="qaedit-advanced-toggle">
+                <button
+                    className={`qaedit-toggle-button ${showAdvanced ? "open" : ""}`}
+                    onClick={() => setShowAdvanced(prev => !prev)}
+                >
+                    {showAdvanced ? "▲ 高度な設定を閉じる" : "▼ 高度な設定"}
+                </button>
+
+                {showAdvanced && (
+                    <div className="qaedit-advanced-settings">
+                        <div className="uploader-container">
+                            <h2>追加資料アップロード</h2>
+                            <h4>（.csvファイルのみ対応、カラム名に"質問"、"回答"が存在すること）</h4>
+                            <p className="title">ファイルをアップロードしなければ同じ条件で再生成</p>
+                            <p className="title">過去の質問と解答をCSV形式でアップロードすれば、
+                                <br />それらを考慮した生成を行う</p>
+
+                            {!file ? (
+                                <div
+                                    className="upload-box"
+                                    onDrop={handleDrop}
+                                    onDragOver={handleDragOver}
+                                    onClick={() => document.getElementById("hiddenFileInput")?.click()}
+                                >
+                                    <p>ここにCSVファイルをドラッグ＆ドロップ、<br />またはクリックして選択</p>
+                                    <input
+                                        type="file"
+                                        id="hiddenFileInput"
+                                        accept="text/csv"
+                                        onChange={handleFileChange}
+                                        style={{ display: "none" }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="file-summary">
+                                    <p>選択されたファイル: <strong>{file.name}</strong></p>
+                                    <button className="remove-button" onClick={() => setFile(null)}>削除</button>
+                                </div>
+                            )}
+
+                            <div className="selector">
+                                <label>出題数:</label>
+                                <div className="button-group">
+                                    {[5, 10, 15, 20].map((count) => (
+                                        <button
+                                            key={count}
+                                            className={questionCount === count ? "selected" : ""}
+                                            onClick={() => setQuestionCount(count)}
+                                        >
+                                            {count}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="selector">
+                                <label>難易度:</label>
+                                <div className="button-group">
+                                    {["易", "中", "難"].map((level) => (
+                                        <button
+                                            key={level}
+                                            className={difficulty === level ? "selected" : ""}
+                                            onClick={() => setDifficulty(level)}
+                                        >
+                                            {level}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="selector">
+                                <label htmlFor="modeSelect">出題モード:</label>
+                                <select
+                                    id="modeSelect"
+                                    value={mode}
+                                    onChange={(e) => setMode(e.target.value)}
+                                    className="dropdown"
+                                >
+                                    <option value="">モードを選択してください</option>
+                                    <option value="３択問題">３択問題</option>
+                                    <option value="４択問題">４択問題</option>
+                                    <option value="４択複数選択問題">４択複数選択問題</option>
+                                    <option value="記述式問題">記述式問題</option>
+                                </select>
+                            </div>
+
+                            <button className="submit-button" onClick={handleSubmit} disabled={isLoading}>
+                                {isLoading ? "生成中..." : "QAを生成する"}
+                            </button>
+
+                            {isLoading && <div className="loading-bar"></div>}
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <div className="qaedit-save-button">
                 <button className="qaedit-button delete" onClick={handleDelete}>削除</button>
