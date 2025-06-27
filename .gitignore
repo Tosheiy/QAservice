@@ -6,6 +6,7 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.cache/
 
 # -----------------------
 # 🛠 AWS SAM
@@ -20,8 +21,8 @@
 # -----------------------
 # 📦 依存関係
 # -----------------------
-/frontend/node_modules/
-/node_modules/      # ← 万が一他にもnode_modulesがあれば
+/frontend_teacher/node_modules/
+/frontend_student/node_modules/
 
 /.pnp
 .pnp.js
@@ -34,8 +35,8 @@
 # -----------------------
 # 🏗 ビルド出力
 # -----------------------
-/frontend/build/
-/build/
+/frontend_teacher/build/
+/frontend_student/build/
 
 # -----------------------
 # 🗂 その他
