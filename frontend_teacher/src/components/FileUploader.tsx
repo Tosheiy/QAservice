@@ -67,7 +67,8 @@ const FileUploader: React.FC = () => {
     return (
         <div className="uploader-container">
             <h1 className="title">QA生成ツール</h1>
-            <h2>PDFアップロード</h2>
+            <h2>資料アップロード</h2>
+            <h4>（.txt, .pdfファイルのみ対応）</h4>
 
             {!file ? (
                 <div
@@ -76,11 +77,11 @@ const FileUploader: React.FC = () => {
                     onDragOver={handleDragOver}
                     onClick={() => document.getElementById("hiddenFileInput")?.click()}
                 >
-                    <p>ここにPDFをドラッグ＆ドロップ、<br />またはクリックして選択</p>
+                    <p>ここにPDFやテキストをドラッグ＆ドロップ、<br />またはクリックして選択</p>
                     <input
                         type="file"
                         id="hiddenFileInput"
-                        accept="application/pdf"
+                        accept="application/pdf,text/plain"
                         onChange={handleFileChange}
                         style={{ display: "none" }}
                     />

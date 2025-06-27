@@ -180,9 +180,10 @@ const QADetail: React.FC = () => {
                                     <li key={index} className="qadetail-history-card">
                                         <div className="qa-label">問 {item.qa_id + 1}</div>
                                         <p className="qa-content">{item.question}</p>
-                                        <div className="qa-label">選択肢</div>
                                         {/* 選択肢のリスト（記述式以外の場合のみ表示） */}
                                         {item.options.length > 0 && (
+                                            <>
+                                            <div className="qa-label">選択肢</div>
                                             <ul className="qa-list">
                                                 {item.options.map((opt: string, i: number) => {
                                                     const normalizedOption = opt.trim().replace(/\s+/g, '').toLowerCase();
@@ -216,6 +217,7 @@ const QADetail: React.FC = () => {
                                                     );
                                                 })}
                                             </ul>
+                                            </>
                                         )}
 
 
