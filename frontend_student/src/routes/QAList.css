@@ -1,0 +1,139 @@
+/* ページ全体の余白・パディング調整 */
+
+/* QADList.css */
+body {
+    margin: 0;
+    /* ブラウザのデフォルト余白（上下左右）を削除してリセット */
+    padding: 0;
+    /* デフォルトの内側余白も削除 */
+}
+
+.qa-container {
+    padding: 0 20px 20px 20px;
+    /* 上: 0, 左右: 20px, 下: 20px の内側余白 */
+    margin: 0;
+    /* 外側の余白はなし（コンテナを親にぴったり配置） */
+}
+
+.qa-title {
+    margin: 0;
+    /* デフォルトの外側余白を削除Ï*/
+    padding: 0;
+    /* デフォルトの内側余白も削除 */
+    margin-top: 1rem;
+    /* タイトルの上に約16pxの余白を追加 */
+    margin-bottom: 3rem;
+    font-size: 3rem;
+    /* タイトルの文字サイズを大きく（約48px） */
+    font-weight: bold;
+    /* タイトルの文字を太字に */
+    border-bottom: 2px solid #ccc;
+    /* タイトル下に薄いグレーの区切り線を引く */
+    padding-bottom: 0.5rem;
+    /* 区切り線と文字の間に約8pxの余白 */
+}
+
+.qa-card-container {
+    display: flex;
+    /* フレックスボックスでカードを並べる */
+    flex-direction: column;
+    /* 縦方向に並べる */
+    gap: 16px;
+    /* 各カード間に16pxの間隔 */
+    align-items: flex-start;
+    /* 左寄せにする（中央寄せを解除） */
+    margin-top: -10px;
+    /* カード群全体を少し上に移動（調整用） */
+
+    /* スクロール有効化用コメントアウトコード（必要時有効化） */
+    /*
+    max-height: 450px;          スクロールエリアの高さ制限
+    overflow-y: auto;           縦スクロールを有効化
+    padding-right: 8px;         スクロールバーと内容の間に余白
+    */
+}
+
+.qa-card {
+    width: 1000px;
+    /* カードの横幅を1000pxに固定（大きめサイズ） */
+    border: 1px solid #ccc;
+    /* 薄いグレーの枠線 */
+    border-radius: 8px;
+    /* 角を8px丸める */
+    padding: 15px;
+    /* カード内の余白 */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    /* 軽い影で立体感 */
+    text-align: left;
+    /* カード内テキストを左寄せ */
+    margin-left: 20px;
+    /* 親コンテナ左から20pxの余白 */
+
+    transition: background-color 0.4s ease,
+        box-shadow 0.4s ease,
+        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 背景色・影・浮き上がりのアニメーションを自然に滑らかに */
+}
+
+.qa-card-title {
+    font-size: 1.2rem;
+    /* 約19.2px、カード内タイトルとして見やすいサイズ */
+    margin: 0;
+    font-weight: 600;
+    /* ちょっと太字で強調 */
+    color: #007acc;
+    /* アクセントカラーでタイトルを引き立てる */
+    /* color: #000000;  */
+}
+
+.qa-link {
+    text-decoration: none;
+    /* リンクの下線を消す */
+    color: #007BFF;
+    /* リンク色をブルーに（アクセントカラー） */
+}
+
+.qa-card-link:hover .qa-card {
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+    /* ホバー時に影を強調 */
+    background-color: #e8f7ff;
+    /* ホバー時に背景色を薄い灰色に */
+    cursor: pointer;
+    /* ホバー時にポインターに変更 */
+    transform: translateY(-5px);
+    /* ホバー時に5px上に浮き上がる */
+}
+
+.qa-description {
+    font-size: 1.2rem;
+    /* 説明文の文字サイズを少し大きめに設定（約19.2px） */
+    color: #2e2e2e;
+    /* 説明文の文字色を落ち着いたグレーにして視認性を向上 */
+    margin: 1rem 0 4rem 20px;
+    /* 上に約16px、下に約32pxの余白を設け、周囲と間隔を確保 */
+}
+
+
+.qa-card {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 10px;
+    transition: box-shadow 0.3s ease;
+}
+
+.qa-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.qa-card.solved {
+    background-color: #f2f2f2;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.qa-status {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}

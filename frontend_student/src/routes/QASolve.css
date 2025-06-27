@@ -1,0 +1,136 @@
+.solve-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.solve-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+    color: #333;
+}
+
+.solve-question-block {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+.solve-question {
+    font-weight: bold;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: #444;
+}
+
+.solve-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.solve-option {
+    background-color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.solve-option:hover {
+    background-color: #f0f0f0;
+}
+
+.solve-option input[type="radio"],
+.solve-option input[type="checkbox"] {
+    margin-right: 0.8rem;
+    accent-color: #007bff;
+}
+
+.solve-option input:checked+label,
+.solve-option:has(input:checked) {
+    background-color: #e6f0ff;
+    border-color: #007bff;
+}
+
+.solve-textarea {
+    width: 90%;
+    height: 120px;
+    padding: 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    resize: vertical;
+}
+
+.solve-submit-button {
+    background-color: #007bff;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+.solve-submit-button:hover {
+    background-color: #0056b3;
+}
+
+.solve-submit-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.satisfaction-buttons {
+    margin-top: 8px;
+}
+
+.satisfaction-button {
+    font-size: 16px;
+    margin-right: 8px;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.satisfaction-button:hover {
+    background-color: #f0f0f0;
+}
+
+.selected-good {
+    background-color: #d4f4dd;
+    border-color: #28a745;
+    color: #28a745;
+    font-weight: bold;
+}
+
+.selected-bad {
+    background-color: #fce4e4;
+    border-color: #dc3545;
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.satisfaction-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 4px;
+}

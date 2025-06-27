@@ -34,6 +34,7 @@ def get_qa_info(id: str):
         class: string;
         title: string;
         mode: string;
+        questionCount: int
     }
     '''
     response = qa_info_table.get_item(Key={'id': id})
@@ -48,7 +49,8 @@ def get_qa_info(id: str):
         "created_at": item.get("created_at"),
         "className": item.get("className"),
         "title": item.get("title"),
-        "mode": item.get("mode")
+        "mode": item.get("mode"),
+        "questionCount": item.get("questionCount")
     }
 
     return filtered

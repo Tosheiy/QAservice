@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Union, Optional
 
 class QAItemModel(BaseModel):
     id: str
@@ -46,3 +46,16 @@ class QAResultModel(BaseModel):
     true: int
 
 
+
+
+class AnswerResult(BaseModel):
+    qa_id: int
+    select: Union[str, List[str], None]  # 選択肢
+    user_answer: Union[str, List[str]]
+    correct: Optional[bool] = None
+    satisfaction: int # 入力なし０、good１、bad-1
+
+class Submission(BaseModel):
+    uid: str
+    qa_info_id: str
+    results: List[AnswerResult]
