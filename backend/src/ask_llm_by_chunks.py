@@ -18,6 +18,7 @@ OPENAI_APIKEY = os.getenv("OPENAI_API_KEY")
 MAX_RETRIES = 5
 # 再送間隔（秒）
 RETRY_DELAY = 2
+MAX_TOKEN = 10000
 
 def get_response_with_retry(client, system_text, send_text, mode):
     for attempt in range(MAX_RETRIES):
@@ -96,6 +97,11 @@ def get_response_with_retry(client, system_text, send_text, mode):
 def ask_llm_by_chunks(s_data: SourceData):
     client = OpenAI(api_key=OPENAI_APIKEY)
 
+    csv_system_prompt = ""
+    csv_user_prompt = ""
+    if s_data.user_qa != []:
+        csv_system_prompt, csv_user_prompt = make_csv_prompt(s_data)
+
     options_text = ""
     options_ex = ""
     if s_data.mode != '記述式問題':
@@ -142,6 +148,7 @@ def ask_llm_by_chunks(s_data: SourceData):
     </question>
     {options_ex}
     {answers_ex}
+    {csv_system_prompt}
     '''
 
     qa_list = []
@@ -149,6 +156,8 @@ def ask_llm_by_chunks(s_data: SourceData):
     id = "hoge"
     created_at = datetime.now().strftime("%Y%m%d%H%M")
     for text in s_data.chunk_text:
+
+        text += csv_user_prompt
         
         question, options, answer = get_response_with_retry(client, system_text=system_text, send_text=text, mode=s_data.mode)
         
@@ -163,3 +172,28 @@ def ask_llm_by_chunks(s_data: SourceData):
         qa_list.append(qaitem)
 
     return qa_list
+
+
+
+def make_csv_prompt(s_data, max_token=4000):
+    csv_system_prompt = (
+        "[追加資料]\n以下は過去の質問とその解答です。この情報を参考にして新たなQAを生成してください。\n"
+    )
+    
+    csv_user_prompt = "\n\n[追加資料]\n"
+    total_tokens = 0
+
+    for i, row in enumerate(s_data.user_qa):
+        question = row.get("質問") or row.get("question") or ""
+        answer = row.get("回答") or row.get("answer") or ""
+
+        entry = f"Q {i+1}: {question}\nA {i+1}: {answer}\n\n"
+        entry_tokens = len(entry)
+
+        if total_tokens + entry_tokens > max_token:
+            break
+
+        csv_user_prompt += entry
+        total_tokens += entry_tokens
+
+    return csv_system_prompt, csv_user_prompt

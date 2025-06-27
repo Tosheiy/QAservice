@@ -1,7 +1,7 @@
 import fitz  # pymupdf4llmはPyMuPDFに依存
 
 class SourceData:
-    def __init__(self, row_file, questionCount, mode, difficulty, filename):
+    def __init__(self, row_file, questionCount, mode, difficulty, filename, className="授業名を設定してください", steam=0):
         self.row_file = row_file
         self.questionCount = questionCount
         self.mode = mode
@@ -9,6 +9,9 @@ class SourceData:
         self.filename = filename
         self.texts = ""
         self.chunk_text = []
+        self.user_qa = []
+        self.className = className
+        self.steam = steam
 
     def pdf2text(self):
         pdf = fitz.open(stream=self.row_file, filetype="pdf")

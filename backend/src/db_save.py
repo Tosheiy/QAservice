@@ -9,8 +9,10 @@ from db import qa_item_table, qa_info_table
 
 
 
-def db_save_to_QAinfo(s_data: SourceData):
-    new_id = str(uuid4())
+def db_save_to_QAinfo(s_data: SourceData, id=""):
+
+    if id == "":
+        id = str(uuid4())
 
     # 各項目を個別に抽出して変数に代入
     title = s_data.filename
@@ -24,7 +26,7 @@ def db_save_to_QAinfo(s_data: SourceData):
 
     # モデルに1つずつ渡す（明示的に）
     qa_info = QAInfoModel(
-        id=new_id,
+        id=id,
         title=title,
         steam=steam,
         originText=originText,
@@ -41,10 +43,7 @@ def db_save_to_QAinfo(s_data: SourceData):
     # 保存（DynamoDBクライアントは事前に定義しておく）
     qa_info_table.put_item(Item=item)
 
-    return new_id
-
-
-
+    return id
 
 
 def db_save_to_QAitem(id: str, result_question: List[QAItemModel]):
