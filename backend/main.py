@@ -1,5 +1,6 @@
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from src.ask_llm_by_chunks import ask_llm_by_chunks
 from src.SourceData import SourceData
@@ -30,8 +31,21 @@ async def upload_pdf(
 ):
     contents = await file.read()
     filename = file.filename
-    s_data = SourceData(contents, questionCount, mode, difficulty, filename)
-    texts = s_data.pdf2text()
+
+    # PDFとTXTで処理を分ける
+    _, ext = os.path.splitext(filename)
+    ext = ext.lower()
+    if ext == ".pdf":
+        s_data = SourceData(contents, questionCount, mode, difficulty, filename)
+        texts = s_data.pdf2text()
+    elif ext == ".txt":
+        # TXTファイルの処理
+        texts = contents.decode("utf-8")  # bytes → str
+        s_data = SourceData(contents, questionCount, mode, difficulty, filename)
+        s_data.texts = texts
+    else:
+        raise HTTPException(status_code=400, detail="対応していないファイル形式です")
+
     chunk_text = s_data.text2chunk()
     result_question = ask_llm_by_chunks(s_data)
 
