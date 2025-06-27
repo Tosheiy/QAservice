@@ -7,7 +7,7 @@ interface QAItem {
     qa_id: number;
     question: string;
     options: string[];
-    answer: string;
+    answer: string[];
     satisfaction: number;
 }
 
@@ -31,7 +31,13 @@ const QAEdit: React.FC = () => {
                 axios.get<QAInfo>(`http://localhost:8000/qainfo/${id}`)
             ])
                 .then(([itemsRes, infoRes]) => {
-                    setQaItems(itemsRes.data);
+                    const normalizedItems = itemsRes.data.map((item: any) => ({
+                        ...item,
+                        answer: Array.isArray(item.answer)
+                            ? item.answer
+                            : [String(item.answer).trim()] // ここで明確に文字列化＋trim
+                    }));
+                    setQaItems(normalizedItems);
                     setQaInfo(infoRes.data);
                 })
                 .catch(err => {
@@ -40,17 +46,9 @@ const QAEdit: React.FC = () => {
         }
     }, [id]);
 
-    const handleQuestionChange = (
-        index: number,
-        key: keyof QAItem,
-        value: string
-    ) => {
+    const handleQuestionChange = (index: number, key: keyof QAItem, value: string) => {
         const updated = [...qaItems];
-        if (key === "options") {
-            updated[index][key] = value.split(",").map(v => v.trim());
-        } else {
-            (updated[index] as any)[key] = value;
-        }
+        (updated[index] as any)[key] = value;
         setQaItems(updated);
     };
 
@@ -59,14 +57,40 @@ const QAEdit: React.FC = () => {
         updated[itemIndex].options[optIndex] = value;
         setQaItems(updated);
     };
-    
+
+    const handleAnswerChange = (itemIndex: number, answerIndex: number, value: string) => {
+        const updated = [...qaItems];
+        updated[itemIndex].answer[answerIndex] = value;
+        setQaItems(updated);
+    };
+
+    const addAnswerField = (itemIndex: number) => {
+        const updated = [...qaItems];
+        if (updated[itemIndex].answer.length < updated[itemIndex].options.length) {
+            updated[itemIndex].answer.push("");
+            setQaItems(updated);
+        }
+    };
+
+    const removeAnswerField = (itemIndex: number, answerIndex: number) => {
+        const updated = [...qaItems];
+        if (updated[itemIndex].answer.length > 1) {
+            updated[itemIndex].answer.splice(answerIndex, 1);
+            setQaItems(updated);
+        }
+    };
 
     const handleSave = () => {
         if (!id || !qaInfo) return;
 
+        const preparedItems = qaItems.map(item => ({
+            ...item,
+            answer: item.answer.map(ans => ans.trim())
+        }));
+
         Promise.all([
             axios.patch(`http://localhost:8000/qainfo/${id}`, qaInfo),
-            axios.patch(`http://localhost:8000/qaitem/${id}`, qaItems)
+            axios.patch(`http://localhost:8000/qaitem/${id}`, preparedItems)
         ])
             .then(() => navigate(`/qa/${id}`))
             .catch(err => console.error("保存失敗:", err));
@@ -84,12 +108,22 @@ const QAEdit: React.FC = () => {
     };
 
     const isValidAnswers = (): boolean => {
-        return (
-            qaInfo?.title.trim() !== "" &&
-            qaItems.every(item => item.options.includes(item.answer.trim()))
-        );
+        if (!qaInfo?.title.trim()) return false;
+
+        return qaItems.every(item => {
+            const trimmedAnswers = item.answer.map(ans => ans.trim());
+
+            const hasEmpty = trimmedAnswers.some(ans => ans === "");
+            const hasDuplicate = new Set(trimmedAnswers).size !== trimmedAnswers.length;
+
+            if (qaInfo.mode === "記述式問題") {
+                return !hasEmpty && !hasDuplicate;
+            } else {
+                const allValid = trimmedAnswers.every(ans => item.options.includes(ans));
+                return !hasEmpty && !hasDuplicate && allValid;
+            }
+        });
     };
-    
 
     return (
         <div className="qaedit-container">
@@ -116,12 +150,12 @@ const QAEdit: React.FC = () => {
                         onChange={(e) => setQaInfo(info => info ? { ...info, className: e.target.value } : null)}
                     />
                 </div>
-                {qaInfo && <p className="qaedit-date">                        
+                {qaInfo && <p className="qaedit-date">
                     作成日: {
-                    qaInfo.created_at.length >= 12
-                        ? `${qaInfo.created_at.slice(0, 4)}.${qaInfo.created_at.slice(4, 6)}.${qaInfo.created_at.slice(6, 8)} ${qaInfo.created_at.slice(8, 10)}:${qaInfo.created_at.slice(10, 12)}`
-                        : qaInfo.created_at
-                }
+                        qaInfo.created_at.length >= 12
+                            ? `${qaInfo.created_at.slice(0, 4)}.${qaInfo.created_at.slice(4, 6)}.${qaInfo.created_at.slice(6, 8)} ${qaInfo.created_at.slice(8, 10)}:${qaInfo.created_at.slice(10, 12)}`
+                            : qaInfo.created_at
+                    }
                 </p>}
             </div>
 
@@ -135,29 +169,83 @@ const QAEdit: React.FC = () => {
                             value={item.question}
                             onChange={(e) => handleQuestionChange(index, "question", e.target.value)}
                         />
-                        <label className="qaedit-label">選択肢</label>
-                        <ul className="qaedit-option-list">
-                            {item.options.map((opt, optIndex) => (
-                                <li key={optIndex} className="qaedit-option-item">
-                                    <input
-                                        className="qaedit-input"
-                                        value={opt}
-                                        onChange={(e) => handleOptionChange(index, optIndex, e.target.value)}
-                                        placeholder={`選択肢 ${optIndex + 1}`}
-                                    />
-                                </li>
-                            ))}
-                        </ul>
+                        {qaInfo?.mode !== "記述式問題" && (
+                            <>
+                                <label className="qaedit-label">選択肢</label>
+                                <ul className="qaedit-option-list">
+                                    {item.options.map((opt, optIndex) => (
+                                        <li key={optIndex} className="qaedit-option-item">
+                                            <input
+                                                className="qaedit-input"
+                                                value={opt}
+                                                onChange={(e) => handleOptionChange(index, optIndex, e.target.value)}
+                                                placeholder={`選択肢 ${optIndex + 1}`}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
 
                         <label className="qaedit-label">答え</label>
-                        <input
-                            className={`qaedit-input ${!item.options.includes(item.answer.trim()) ? "invalid-answer" : ""}`}
-                            value={item.answer}
-                            onChange={(e) => handleQuestionChange(index, "answer", e.target.value)}
-                        />
-                        {!item.options.includes(item.answer.trim()) && (
-                            <p className="qaedit-warning">※ 選択肢と一致していません</p>
+                        {qaInfo?.mode === "４択複数選択問題" ? (
+                            <>
+                                {item.answer.map((ans, ansIndex) => (
+                                    <div key={ansIndex} className="qaedit-answer-row">
+                                        <input
+                                            className={`qaedit-input ${!item.options.includes(ans.trim()) ? "invalid-answer" : ""
+                                                }`}
+                                            value={ans || ""}
+                                            onChange={(e) => handleAnswerChange(index, ansIndex, e.target.value)}
+                                            placeholder={`答え ${ansIndex + 1}`}
+                                        />
+                                        {item.answer.length > 1 && (
+                                            <button
+                                                type="button"
+                                                className="qaedit-remove-answer"
+                                                onClick={() => removeAnswerField(index, ansIndex)}
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                                {item.answer.length < 4 && (
+                                    <button
+                                        type="button"
+                                        className="qaedit-add-answer"
+                                        onClick={() => addAnswerField(index)}
+                                    >
+                                        ＋ 答えを追加
+                                    </button>
+                                )}
+                                {/* 重複がある場合に警告 */}
+                                {(() => {
+                                    const trimmed = item.answer.map(ans => ans.trim());
+                                    const hasDuplicate = new Set(trimmed).size !== trimmed.length;
+                                    return hasDuplicate ? (
+                                        <p className="qaedit-warning">※ 同じ答えが複数あります</p>
+                                    ) : null;
+                                })()}
+                            </>
+                        ) : (
+                            <input
+                                className={`qaedit-input ${qaInfo?.mode !== "記述式問題" &&
+                                        !item.options.includes(item.answer[0]?.trim?.())
+                                        ? "invalid-answer"
+                                        : ""
+                                    }`}
+                                value={item.answer[0] || ""}
+                                onChange={(e) => handleAnswerChange(index, 0, e.target.value)}
+                                placeholder="答え"
+                            />
                         )}
+
+                        {qaInfo?.mode !== "記述式問題" &&
+                            item.answer.some(ans => !item.options.includes(ans.trim())) && (
+                                <p className="qaedit-warning">※ 答えの中に選択肢と一致しないものがあります</p>
+                            )}
+
                     </li>
                 ))}
             </ul>
@@ -165,16 +253,14 @@ const QAEdit: React.FC = () => {
             <div className="qaedit-save-button">
                 <button className="qaedit-button delete" onClick={handleDelete}>削除</button>
                 <button
-    className="qaedit-button"
-    onClick={handleSave}
-    disabled={!isValidAnswers()}
-    title={!isValidAnswers() ? "タイトルと答えの整合性が必要です" : ""}
->
-    保存
-</button>
-
+                    className="qaedit-button"
+                    onClick={handleSave}
+                    disabled={!isValidAnswers()}
+                    title={!isValidAnswers() ? "タイトルと答えの整合性が必要です" : ""}
+                >
+                    保存
+                </button>
             </div>
-
         </div>
     );
 };

@@ -309,3 +309,48 @@ body {
 .qadetail-history-card ul li {
     margin: 4px 0;
 }
+
+
+
+
+.qa-label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-top: 1.2rem;
+    margin-bottom: 0.4rem;
+    color: #333;
+    border-left: 4px solid #007acc;
+    padding-left: 0.5rem;
+    background-color: #f0f8ff;
+    display: inline-block;
+    border-radius: 4px;
+}
+
+.qa-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #444;
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+}
+
+.qa-list {
+    padding-left: 1.5rem;
+    margin-bottom: 1.2rem;
+    list-style-type: disc;
+    list-style-position: inside;
+    color: #444;
+    font-size: 1rem;
+}
+
+.qa-list li {
+    margin-bottom: 0.25rem;
+}
+
+.qa-divider {
+    border: none;
+    border-top: 1px solid #c8c8c8;
+    margin: 3rem auto;
+    opacity: 0.5;
+    width: 80%;
+}

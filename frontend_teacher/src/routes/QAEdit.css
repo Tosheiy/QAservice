@@ -160,3 +160,44 @@
     font-size: 0.85rem;
     margin-top: 4px;
 }
+
+.qaedit-answer-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+}
+
+.qaedit-remove-answer {
+    margin-bottom: 13px;
+    background-color: #ffdddd;
+    border: none;
+    color: #c00;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 3px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.qaedit-remove-answer:hover {
+    background-color: #ffcccc;
+}
+
+.qaedit-add-answer {
+    margin-top: 0.5rem;
+    padding: 6px 12px;
+    background-color: #e0f3ff;
+    border: 1px solid #88c3e8;
+    color: #0077cc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.qaedit-add-answer:hover {
+    background-color: #d2ecff;
+    transform: translateY(-1px);
+}
