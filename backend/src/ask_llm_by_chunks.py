@@ -8,7 +8,11 @@ from dotenv import load_dotenv
 from src.SourceData import SourceData
 
 from models import QAItemModel
-
+import boto3
+import json
+from botocore.auth import SigV4Auth
+from botocore.awsrequest import AWSRequest
+import urllib.request
 
 
 load_dotenv()
@@ -20,6 +24,104 @@ MAX_RETRIES = 5
 RETRY_DELAY = 2
 MAX_TOKEN = 10000
 
+bedrock = boto3.client("bedrock-runtime", region_name="ap-northeast-1")
+
+def get_response_with_retry_bedrock(system_text, send_text, mode):
+    prompt = f"""
+    <system>
+    {system_text}
+    </system>
+
+    <user>
+    {send_text}
+    </user>
+    """
+
+    body_data = {
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1024,
+        "temperature": 0.7,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+
+    # --- ここで推論プロファイルの ARN を設定 ---
+    inference_profile_arn = "arn:aws:bedrock:ap-northeast-1:753695775301:inference-profile/apac.anthropic.claude-3-sonnet-20240229-v1:0"
+
+    # --- URLとヘッダの準備 ---
+    region = "ap-northeast-1"
+    service = "bedrock"
+    model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
+    endpoint = f"https://bedrock-runtime.{region}.amazonaws.com/model/{model_id}/invoke"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "x-amzn-bedrock-inference-config": json.dumps({
+            "inferenceProfileArn": inference_profile_arn
+        })
+    }
+
+    # --- SigV4署名付きHTTPリクエスト作成 ---
+    session = boto3.Session()
+    credentials = session.get_credentials().get_frozen_credentials()
+    request = AWSRequest(method="POST", url=endpoint, data=json.dumps(body_data).encode("utf-8"), headers=headers)
+    SigV4Auth(credentials, service, region).add_auth(request)
+    signed_headers = dict(request.headers)
+
+    # --- 実リクエスト ---
+    req = urllib.request.Request(endpoint, data=json.dumps(body_data).encode("utf-8"), headers=signed_headers)
+    with urllib.request.urlopen(req, timeout=60) as response:
+        response_body = json.loads(response.read())
+        response_text = response_body["content"][0]["text"]
+
+    # --- タグ抽出処理（元の処理を流用） ---
+    import re
+    options = []
+
+    # タグの中身を抽出
+    question = re.findall(r"<question>(.*?)</question>", response_text, re.DOTALL)
+    # question が空のときのエラーハンドリング
+    if not question:
+        print("❌ <question>タグが見つかりませんでした。")
+        raise ValueError("<question>タグが空、または見つかりませんでした。")
+    if mode != "記述式問題":
+        # タグの中身を抽出
+        options_bandles = re.findall(r"<options>(.*?)</options>", response_text, re.DOTALL)
+        if not options_bandles:
+            print("❌ <options>タグが見つかりませんでした。")
+            raise ValueError("<options>タグが空、または見つかりませんでした。")
+        # タグの中身を抽出
+        for options_bandle in options_bandles:
+            options = re.findall(r"<li>(.*?)</li>", options_bandle, re.DOTALL)
+            if not options:
+                print("❌ <li>タグが見つかりませんでした。")
+                raise ValueError("<li>タグが空、または見つかりませんでした。")
+            
+    if mode == "４択複数選択問題":
+        # タグの中身を抽出
+        answer_bandles = re.findall(r"<answer>(.*?)</answer>", response_text, re.DOTALL)
+        if not answer_bandles:
+            print("❌ <answer>タグが見つかりませんでした。")
+            raise ValueError("<answer>タグが空、または見つかりませんでした。")
+        # タグの中身を抽出
+        for answer_bandle in answer_bandles:
+            answer = re.findall(r"<li>(.*?)</li>", answer_bandle, re.DOTALL)
+            if not answer:
+                print("❌ <li>タグが見つかりませんでした。")
+                raise ValueError("<li>タグが空、または見つかりませんでした。")
+    else:
+        # タグの中身を抽出
+        answer = re.findall(r"<answer>(.*?)</answer>", response_text, re.DOTALL)
+        if not answer:
+            print("❌ <answer>タグが見つかりませんでした。")
+            raise ValueError("<answer>タグが空、または見つかりませんでした。")
+
+
+    return question, options, answer
+
+
+
+            
 def get_response_with_retry(client, system_text, send_text, mode):
     for attempt in range(MAX_RETRIES):
         try:
@@ -137,7 +239,7 @@ def ask_llm_by_chunks(s_data: SourceData):
         \n
         '''
     system_text = f'''
-    あなたは、テキストから{s_data.mode}クイズを難易度[{s_data.difficulty}]で作成する優秀なアシスタントです。\n
+    あなたは、[テキスト]から{s_data.mode}クイズを難易度[{s_data.difficulty}]で作成する優秀なアシスタントです。\n
     【ルール】
     ・作成した問題を<question></question>タグを用いてその中に記載してください。
     {options_text}
@@ -157,9 +259,12 @@ def ask_llm_by_chunks(s_data: SourceData):
     created_at = datetime.now().strftime("%Y%m%d%H%M")
     for text in s_data.chunk_text:
 
+        text = "[テキスト]\n" + text
+
         text += csv_user_prompt
-        
+
         question, options, answer = get_response_with_retry(client, system_text=system_text, send_text=text, mode=s_data.mode)
+        # question, options, answer = get_response_with_retry_bedrock(system_text=system_text, send_text=text, mode=s_data.mode)
         
         qaitem = QAItemModel(
             id=id,
@@ -171,13 +276,15 @@ def ask_llm_by_chunks(s_data: SourceData):
         qa_id += 1
         qa_list.append(qaitem)
 
+
+
     return qa_list
 
 
 
 def make_csv_prompt(s_data, max_token=4000):
     csv_system_prompt = (
-        "[追加資料]\n以下は過去の質問とその解答です。この情報を参考にして新たなQAを生成してください。\n"
+        "[追加資料]は過去の質問とその解答です。この情報も参考にしてQAを生成してください。\n"
     )
     
     csv_user_prompt = "\n\n[追加資料]\n"

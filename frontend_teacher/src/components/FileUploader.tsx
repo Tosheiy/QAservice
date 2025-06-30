@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import "./FileUploader.css";
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
+import HelpButton from "../components/HelpButton";
 
-
-const qaURL = "http://127.0.0.1:8000/upload_pdf/"
+const apiUrl = process.env.REACT_APP_API_URL;
 
 const FileUploader: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
@@ -36,27 +37,70 @@ const FileUploader: React.FC = () => {
             return;
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("questionCount", String(questionCount));
-        formData.append("mode", mode);
-        formData.append("difficulty", difficulty);
-
         try {
             setIsLoading(true); // ローディング開始
-            const response = await fetch(qaURL, {
-                method: "POST",
-                body: formData,
+
+            // ① プリサインドURL取得
+            const response = await axios.get(`${apiUrl}/generate_presigned_url`, {
+                params: {
+                    filename: file.name,
+                    questioncount: questionCount,
+                    mode: mode,
+                    difficulty: difficulty,
+                },
+              });
+            const { url, key, uuid } = response.data;
+
+            // ② S3に直接アップロード
+            const contentType = file.name.endsWith(".pdf")
+                ? "application/pdf"
+                : file.name.endsWith(".txt")
+                    ? "text/plain"
+                    : "application/octet-stream"; // 安全なデフォルト
+
+
+            await fetch(url, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": contentType,
+                    "x-amz-meta-questioncount": String(questionCount),
+                    "x-amz-meta-mode": mode,
+                    "x-amz-meta-difficulty": difficulty,
+                    "x-amz-meta-uuid": uuid,
+                },
+                body: file,
             });
-            setIsLoading(false); // ローディング終了
-            if (response.ok) {
-                alert("アップロード成功！");
-                const data = await response.json(); // ← レスポンスをJSONとして読み込む
-                navigate(`/qa/${data.id}`);   
-            }else {
-                alert("アップロード失敗");
-                navigate("/"); // ← ここで画面遷移
-            }
+        
+
+            const pollStatus = async (uuid: string) => {
+                const startTime = Date.now();
+                const maxWait = 180000; // 最大3分
+
+                const interval = setInterval(async () => {
+                    try {
+                        const res = await fetch(`${apiUrl}/check_status?id=${uuid}`);
+                        const data = await res.json();
+
+                        if (data.status === "completed") {
+                            clearInterval(interval);
+                            setIsLoading(false); // ✅ 成功時にローディング終了
+                            navigate(`/qa/${uuid}`);
+                        } else if (Date.now() - startTime > maxWait) {
+                            clearInterval(interval);
+                            setIsLoading(false); // ✅ タイムアウト時にローディング終了
+                            alert("処理がタイムアウトしました。もう一度お試しください。");
+                        }
+                    } catch (error) {
+                        clearInterval(interval);
+                        setIsLoading(false); // ✅ エラー時にもローディング終了
+                        alert("サーバーエラーが発生しました。");
+                    }
+                }, 5000);
+            };
+
+            // ✅ 呼び出し前にローディング開始
+            pollStatus(uuid);
+            
         } catch (error) {
             console.error("送信エラー:", error);
             setIsLoading(false);
@@ -64,8 +108,14 @@ const FileUploader: React.FC = () => {
         }
     };
 
+    const handleHelpClick = () => {
+        alert("ここに使い方ガイドを表示します。");
+    };
+
+
     return (
         <div className="uploader-container">
+            <HelpButton onClick={handleHelpClick} />
             <h1 className="title">QA生成ツール</h1>
             <h2>資料アップロード</h2>
             <h4>（.txt, .pdfファイルのみ対応）</h4>
@@ -111,13 +161,17 @@ const FileUploader: React.FC = () => {
             <div className="selector">
                 <label>難易度:</label>
                 <div className="button-group">
-                    {["易", "中", "難"].map((level) => (
+                    {[
+                        { label: "易", value: "easy" },
+                        { label: "中", value: "middle" },
+                        { label: "難", value: "hard" }
+                    ].map(({ label, value }) => (
                         <button
-                            key={level}
-                            className={difficulty === level ? "selected" : ""}
-                            onClick={() => setDifficulty(level)}
+                            key={value}
+                            className={difficulty === value ? "selected" : ""}
+                            onClick={() => setDifficulty(value)}
                         >
-                            {level}
+                            {label}
                         </button>
                     ))}
                 </div>
@@ -132,10 +186,10 @@ const FileUploader: React.FC = () => {
                     className="dropdown"
                 >
                     <option value="">モードを選択してください</option>
-                    <option value="３択問題">３択問題</option>
-                    <option value="４択問題">４択問題</option>
-                    <option value="４択複数選択問題">４択複数選択問題</option>
-                    <option value="記述式問題">記述式問題</option>
+                    <option value="three">３択問題</option>
+                    <option value="four">４択問題</option>
+                    <option value="multi">４択複数選択問題</option>
+                    <option value="script">記述式問題</option>
                 </select>
             </div>
 

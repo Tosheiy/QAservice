@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./QAEdit.css";
+import HelpButton from "../components/HelpButton";
 
 interface QAItem {
     qa_id: number;
@@ -18,7 +19,8 @@ interface QAInfo {
     mode: string;
 }
 
-const qaURL = "http://127.0.0.1:8000/upload_csv/"
+const apiUrl = process.env.REACT_APP_API_URL;
+const qaURL = `${apiUrl}/upload_csv/`
 
 const QAEdit: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -31,8 +33,8 @@ const QAEdit: React.FC = () => {
     useEffect(() => {
         if (id) {
             Promise.all([
-                axios.get<QAItem[]>(`http://localhost:8000/qaitem/${id}`),
-                axios.get<QAInfo>(`http://localhost:8000/qainfo/${id}`)
+                axios.get<QAItem[]>(`${apiUrl}/qaitem/${id}`),
+                axios.get<QAInfo>(`${apiUrl}/qainfo/${id}`)
             ])
                 .then(([itemsRes, infoRes]) => {
                     const normalizedItems = itemsRes.data.map((item: any) => ({
@@ -93,8 +95,8 @@ const QAEdit: React.FC = () => {
         }));
 
         Promise.all([
-            axios.patch(`http://localhost:8000/qainfo/${id}`, qaInfo),
-            axios.patch(`http://localhost:8000/qaitem/${id}`, preparedItems)
+            axios.patch(`${apiUrl}/qainfo/${id}`, qaInfo),
+            axios.patch(`${apiUrl}/qaitem/${id}`, preparedItems)
         ])
             .then(() => navigate(`/qa/${id}`))
             .catch(err => console.error("保存失敗:", err));
@@ -104,8 +106,8 @@ const QAEdit: React.FC = () => {
         if (!id) return;
 
         Promise.all([
-            axios.delete(`http://localhost:8000/qainfo/${id}`),
-            axios.delete(`http://localhost:8000/qaitem/${id}`)
+            axios.delete(`${apiUrl}/qainfo/${id}`),
+            axios.delete(`${apiUrl}/qaitem/${id}`)
         ])
             .then(() => navigate("/qa"))
             .catch(err => console.error("削除失敗:", err));
@@ -164,7 +166,6 @@ const QAEdit: React.FC = () => {
             setIsLoading(false); // ローディング終了
             if (response.ok) {
                 alert("アップロード成功！");
-                const data = await response.json(); // ← レスポンスをJSONとして読み込む
                 navigate(`/qa/${id}`);
             } else {
                 alert("アップロード失敗");
@@ -200,8 +201,13 @@ const QAEdit: React.FC = () => {
         });
     };
 
+    const handleHelpClick = () => {
+        alert("ここに使い方ガイドを表示します。");
+      };
+
     return (
         <div className="qaedit-container">
+            <HelpButton onClick={handleHelpClick} />
             <div className="qaedit-title-input">
                 <input
                     className={`qaedit-input-title ${!qaInfo?.title.trim() ? "invalid-input" : ""}`}

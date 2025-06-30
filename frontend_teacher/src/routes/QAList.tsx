@@ -7,13 +7,13 @@ interface QAOverview {
     id: number;
     title: string;
 }
-
+const apiUrl = process.env.REACT_APP_API_URL;
 const QAList: React.FC = () => {
     const [qaList, setQaList] = useState<QAOverview[]>([]);
 
     useEffect(() => {
         // API からデータを取得
-        axios.get("http://localhost:8000/qainfo")
+        axios.get(`${apiUrl}/qainfo`)
             .then((response) => {
                 setQaList(response.data);
             })

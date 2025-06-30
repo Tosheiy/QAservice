@@ -52,12 +52,14 @@ const QADetail: React.FC = () => {
     const [qaInfo, setQaInfo] = useState<QAInfo | null>(null);
     const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
 
+    const apiUrl = process.env.REACT_APP_API_URL;
+
     useEffect(() => {
         if (id) {
             Promise.all([
-                axios.get<QAItem[]>(`http://localhost:8000/qaitem/${id}`),
-                axios.get<QAInfo>(`http://localhost:8000/qainfo/${id}`),
-                axios.get<AnalysisData>(`http://localhost:8000/qaanalysis/${id}`),
+                axios.get<QAItem[]>(`${apiUrl}/qaitem/${id}`),
+                axios.get<QAInfo>(`${apiUrl}/qainfo/${id}`),
+                axios.get<AnalysisData>(`${apiUrl}/qaanalysis/${id}`),
             ])
                 .then(([itemsRes, infoRes, analysisRes]) => {
                     setQaItems(itemsRes.data);
@@ -68,11 +70,11 @@ const QADetail: React.FC = () => {
                     console.error("データ取得失敗:", err);
                 });
         }
-    }, [id]);
+    }, [id, apiUrl]); // これ
 
     useEffect(() => {
         const fetchAnalysis = () => {
-            axios.get(`http://localhost:8000/qaanalysis/${id}`)
+            axios.get(`${apiUrl}/qaanalysis/${id}`)
                 .then((res) => {
                     setAnalysis(res.data);
                 })
@@ -86,7 +88,7 @@ const QADetail: React.FC = () => {
         const intervalId = setInterval(fetchAnalysis, 5000); // 5秒ごとに再取得
 
         return () => clearInterval(intervalId); // クリーンアップ
-    }, [id]);
+    }, [id, apiUrl]);
 
     return (
         <div className="qadetail-result-container">
@@ -169,12 +171,6 @@ const QADetail: React.FC = () => {
                                 const optionDist = analysisForItem?.option_distribution ?? {};
                                 const satisf = analysisForItem?.satisfaction_summary;
 
-                                console.log(`満足度データ for Q${item.qa_id + 1}:`, {
-                                    good: satisf?.good,
-                                    neutral: satisf?.neutral,
-                                    bad: satisf?.bad
-                                });
-
 
                                 return (
                                     <li key={index} className="qadetail-history-card">
@@ -195,14 +191,6 @@ const QADetail: React.FC = () => {
 
                                                     const rawRate = optionDist[opt.trim()] ?? 0;
                                                     const percentage = Math.round(rawRate * 100);
-
-
-                                                    console.log("==== Debug Info ====");
-                                                    console.log("Option (raw):", opt);
-                                                    console.log("Normalized Option:", normalizedOption);
-                                                    console.log("Answer (raw):", item.answer);
-                                                    console.log("Normalized Answers:", normalizedAnswers);
-                                                    console.log("Is Correct?:", isCorrect);
 
                                                     return (
                                                         <li

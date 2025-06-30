@@ -102,3 +102,18 @@ def delete_qa_info(id: str):
     # 削除処理
     qa_info_table.delete_item(Key={"id": id})
     return {"message": f"QAInfo with id {id} deleted successfully."}
+
+
+
+@router.get("/check_status")
+def check_status(id: str):
+    try:
+        response = qa_info_table.get_item(Key={'id': id})
+        item = response.get('Item')
+        if not item:
+            raise HTTPException(status_code=404, detail="QAInfo not found")
+        return {"status": "completed"}
+    except HTTPException as e:
+        raise e  # ← ここで 500 に上書きせず、そのまま返す
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DynamoDB error: {str(e)}")

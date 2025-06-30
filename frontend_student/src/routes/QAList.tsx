@@ -12,12 +12,14 @@ interface QAStatus extends QAOverview {
     is_solved: boolean;
 }
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const QAList: React.FC = () => {
     const [qaList, setQaList] = useState<QAStatus[]>([]);
     const uid = localStorage.getItem("uid") || "guest";
 
     useEffect(() => {
-        axios.get("http://localhost:8000/qainfo")
+        axios.get(`${apiUrl}/qainfo`)
             .then(async (response) => {
                 const list: QAOverview[] = response.data;
 
@@ -25,7 +27,7 @@ const QAList: React.FC = () => {
                 const updatedList: QAStatus[] = await Promise.all(
                     list.map(async (qa) => {
                         try {
-                            const res = await axios.get(`http://localhost:8000/qaresult/${qa.id}`, {
+                            const res = await axios.get(`${apiUrl}/qaresult/${qa.id}`, {
                                 params: { u_id: uid }
                             });
                             return { ...qa, is_solved: res.data.is_solved === 1 };
@@ -46,7 +48,7 @@ const QAList: React.FC = () => {
             .catch((error) => {
                 console.error("データの取得に失敗しました", error);
             });
-    }, []);
+    }, [uid]);
     
 
     return (

@@ -33,22 +33,23 @@ const QASolve: React.FC = () => {
     const [submitted, setSubmitted] = useState(false);
     const uid = getOrCreateUID();
     const [satisfaction, setSatisfaction] = useState<{ [qa_id: number]: number }>({});
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
-        axios.get(`http://localhost:8000/qainfo/${id}`)
+        axios.get(`${apiUrl}/qainfo/${id}`)
             .then((res) => {
                 setMode(res.data.mode);
                 setTitle(res.data.title);
             });
 
-        axios.get(`http://localhost:8000/qaitem/${id}`)
+        axios.get(`${apiUrl}/qaitem/${id}`)
             .then((res) => {
                 setQuestions(res.data);
             })
             .catch((err) => {
                 console.error("問題の取得に失敗", err);
             });
-    }, [id]);
+    }, [id, apiUrl]);
 
     const handleChange = (qa_id: number, value: string) => {
         setAnswers(prev => ({ ...prev, [qa_id]: value }));
@@ -87,7 +88,7 @@ const QASolve: React.FC = () => {
             results: results
         };
 
-        axios.post("http://localhost:8000/submit", payload)
+        axios.post(`${apiUrl}/submit`, payload)
             .then(() => {
                 alert("回答が送信されました");
                 setSubmitted(true);

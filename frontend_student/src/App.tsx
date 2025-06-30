@@ -12,6 +12,7 @@ function App() {
         <Sidebar />
         <main className="main-content">
           <Routes>
+            <Route path="/" element={<QAList />} />
             <Route path="/qa" element={<QAList />} />
             <Route path="/qa/:id/solve" element={<QASolve />} />
           </Routes>
